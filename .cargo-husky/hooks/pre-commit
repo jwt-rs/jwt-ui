@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -e
+
+echo "Running pre-commit hook:"
+
+echo "Executing: cargo fmt"
+cargo fmt
+
+echo "Executing: make lint"
+make lint
