@@ -182,6 +182,14 @@ pub fn layout_block(title: Span<'_>) -> Block<'_> {
   Block::default().borders(Borders::ALL).title(title)
 }
 
+pub fn layout_block_line(title: Line<'_>) -> Block<'_> {
+  Block::default().borders(Borders::ALL).title(title)
+}
+
+pub fn layout_block_top_border(title: Line<'_>) -> Block<'_> {
+  Block::default().borders(Borders::TOP).title(title)
+}
+
 pub fn layout_block_default(title: &str) -> Block<'_> {
   layout_block(title_style(title))
 }
@@ -197,14 +205,10 @@ pub fn layout_block_active_span(title: Line<'_>, light: bool) -> Block<'_> {
     .style(style_secondary(light))
 }
 
-pub fn layout_block_top_border(title: Line<'_>) -> Block<'_> {
-  Block::default().borders(Borders::TOP).title(title)
-}
-
 pub fn title_with_dual_style<'a>(part_1: String, part_2: String, light: bool) -> Line<'a> {
   Line::from(vec![
-    Span::styled(part_1, style_secondary(light).add_modifier(Modifier::BOLD)),
-    Span::styled(part_2, style_default(light).add_modifier(Modifier::BOLD)),
+    Span::styled(part_1, style_default(light).add_modifier(Modifier::BOLD)),
+    Span::styled(part_2, style_default(light)),
   ])
 }
 

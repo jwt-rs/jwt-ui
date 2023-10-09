@@ -8,7 +8,7 @@ use ratatui::layout::Rect;
 use tui_input::Input;
 
 use self::{
-  jwt::{JWTError, Payload},
+  jwt::{decode_jwt_token, JWTError, Payload},
   key_binding::DEFAULT_KEYBINDING,
   models::{StatefulTable, TabRoute, TabsState},
 };
@@ -16,16 +16,22 @@ use self::{
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub enum ActiveBlock {
   Help,
-  DebuggerToken,
-  DebuggerHeader,
-  DebuggerPayload,
+  DecoderToken,
+  DecoderHeader,
+  DecoderPayload,
+  DecoderSignature,
+  EncoderToken,
+  EncoderHeader,
+  EncoderPayload,
+  EncoderSignature,
   Intro,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum RouteId {
   Help,
-  Debugger,
+  Decoder,
+  Encoder,
   Intro,
 }
 
@@ -36,20 +42,27 @@ pub struct Route {
 }
 
 const DEFAULT_ROUTE: Route = Route {
-  id: RouteId::Debugger,
-  active_block: ActiveBlock::DebuggerToken,
+  id: RouteId::Decoder,
+  active_block: ActiveBlock::DecoderToken,
 };
 
-/// Holds data state for various views
-pub struct Data {
-  pub token_input: TokenInput,
-  pub decoded_token: Option<TokenData<Payload>>,
-  pub selected: Selected,
+#[derive(Default)]
+pub struct Decoder {
+  pub encoded: TextInput,
+  pub decoded: Option<TokenData<Payload>>,
+  pub secret: TextInput,
+  pub signature_verified: bool,
 }
 
-/// selected data items
-pub struct Selected {
-  pub algorithm: Option<String>,
+#[derive(Default)]
+pub struct Encoder {}
+
+/// Holds data state for various views
+#[derive(Default)]
+pub struct Data {
+  pub error: String,
+  pub decoder: Decoder,
+  pub encoder: Encoder,
 }
 
 #[derive(Default, Clone, Eq, PartialEq, Debug)]
@@ -60,7 +73,7 @@ pub enum InputMode {
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct TokenInput {
+pub struct TextInput {
   /// Current value of the input box
   pub input: Input,
   /// Current input mode
@@ -77,23 +90,12 @@ pub struct App {
   pub is_routing: bool,
   pub tick_rate: u64,
   pub size: Rect,
-  pub error: String,
   pub dialog: Option<String>,
   pub confirm: bool,
   pub light_theme: bool,
   pub refresh: bool,
   pub help_docs: StatefulTable<Vec<String>>,
   pub data: Data,
-}
-
-impl Default for Data {
-  fn default() -> Self {
-    Data {
-      selected: Selected { algorithm: None },
-      decoded_token: None,
-      token_input: TokenInput::default(),
-    }
-  }
 }
 
 impl Default for App {
@@ -104,10 +106,17 @@ impl Default for App {
       should_quit: false,
       main_tabs: TabsState::new(vec![
         TabRoute {
-          title: format!("Debugger {}", DEFAULT_KEYBINDING.jump_to_debugger.key),
+          title: format!("Decoder {}", DEFAULT_KEYBINDING.jump_to_decoder.key),
           route: Route {
-            id: RouteId::Debugger,
-            active_block: ActiveBlock::DebuggerToken,
+            id: RouteId::Decoder,
+            active_block: ActiveBlock::DecoderToken,
+          },
+        },
+        TabRoute {
+          title: format!("Encoder {}", DEFAULT_KEYBINDING.jump_to_decoder.key),
+          route: Route {
+            id: RouteId::Encoder,
+            active_block: ActiveBlock::EncoderHeader,
           },
         },
         TabRoute {
@@ -122,7 +131,6 @@ impl Default for App {
       is_routing: false,
       tick_rate: 0,
       size: Rect::default(),
-      error: String::new(),
       dialog: None,
       confirm: false,
       light_theme: false,
@@ -138,9 +146,12 @@ impl App {
     App {
       tick_rate,
       data: Data {
-        token_input: TokenInput {
-          input: Input::new(token.unwrap_or_default()),
-          input_mode: InputMode::Normal,
+        decoder: Decoder {
+          encoded: TextInput {
+            input: Input::new(token.unwrap_or_default()),
+            input_mode: InputMode::Normal,
+          },
+          ..Decoder::default()
         },
         ..Data::default()
       },
@@ -149,13 +160,13 @@ impl App {
   }
 
   pub fn refresh(&mut self) {
-    self.error = String::new();
+    self.data.error = String::new();
     self.data = Data::default();
     self.route_home();
   }
 
   pub fn handle_error(&mut self, e: JWTError) {
-    self.error = format!("{}", e)
+    self.data.error = format!("{}", e)
   }
 
   pub fn push_navigation_stack(&mut self, id: RouteId, active_block: ActiveBlock) {
@@ -192,7 +203,13 @@ impl App {
     self.push_navigation_route(route);
   }
 
-  pub async fn on_tick(&mut self, _first_render: bool) {}
+  pub async fn on_tick(&mut self) {
+    decode_jwt_token(
+      self,
+      self.data.decoder.encoded.input.value().into(),
+      self.data.decoder.secret.input.value().into(),
+    );
+  }
 }
 
 /// utility methods for tests
@@ -248,7 +265,7 @@ mod tests {
     };
 
     // test first render
-    app.on_tick(true).await;
+    app.on_tick().await;
 
     assert!(!app.refresh);
     assert!(!app.is_routing);
@@ -262,7 +279,7 @@ mod tests {
     };
 
     // test first render
-    app.on_tick(false).await;
+    app.on_tick().await;
 
     assert!(!app.refresh);
     assert!(!app.is_routing);
@@ -277,7 +294,7 @@ mod tests {
     };
 
     // test first render
-    app.on_tick(false).await;
+    app.on_tick().await;
 
     assert!(!app.refresh);
     assert!(!app.is_routing);

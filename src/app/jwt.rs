@@ -1,7 +1,7 @@
 // adapted from https://github.com/mike-engel/jwt-cli
 use std::{
   collections::{BTreeMap, HashSet},
-  fmt, io,
+  fmt,
 };
 
 use base64::{engine::general_purpose::STANDARD as base64_engine, Engine as _};
@@ -50,26 +50,20 @@ impl fmt::Display for JWTError {
 pub struct DecodeArgs {
   /// The JWT to decode.
   pub jwt: String,
-  /// The algorithm used to sign the JWT
-  pub algorithm: Algorithm,
   /// Display unix timestamps as ISO 8601 UTC dates
   pub time_format_utc: bool,
   /// The secret to validate the JWT with. Prefix with @ to read from a file or b64: to use base-64 encoded bytes
   pub secret: String,
-  /// Render the decoded JWT as JSON
-  pub json: bool,
   /// Ignore token expiration date (`exp` claim) during validation
   pub ignore_exp: bool,
 }
 
 impl DecodeArgs {
-  pub fn new(jwt: String) -> Self {
+  pub fn new(jwt: String, secret: String) -> Self {
     DecodeArgs {
       jwt,
-      algorithm: Algorithm::HS256,
+      secret,
       time_format_utc: false,
-      secret: "".to_string(),
-      json: false,
       ignore_exp: true,
     }
   }
@@ -79,16 +73,6 @@ impl DecodeArgs {
 pub struct Payload(pub BTreeMap<String, Value>);
 
 impl Payload {
-  //   pub fn from_payloads(payloads: Vec<PayloadItem>) -> Payload {
-  //     let mut payload = BTreeMap::new();
-
-  //     for PayloadItem(k, v) in payloads {
-  //       payload.insert(k, v);
-  //     }
-
-  //     Payload(payload)
-  //   }
-
   pub fn convert_timestamps(&mut self) {
     let timestamp_claims: Vec<String> = vec!["iat".into(), "nbf".into(), "exp".into()];
 
@@ -118,7 +102,102 @@ impl TokenOutput {
   }
 }
 
-pub fn decoding_key_from_secret(alg: &Algorithm, secret_string: &str) -> JWTResult<DecodingKey> {
+pub fn decode_jwt_token(app: &mut App, token: String, secret: String) {
+  if !token.is_empty() {
+    let out = decode_token(&DecodeArgs::new(token, secret));
+    match out {
+      (Ok(decoded), Ok(_)) => {
+        app.data.error = String::new();
+        app.data.decoder.signature_verified = true;
+        app.data.decoder.decoded = Some(decoded);
+      }
+      (Ok(decoded), Err(e)) => {
+        app.handle_error(e);
+        app.data.decoder.signature_verified = false;
+        app.data.decoder.decoded = Some(decoded);
+      }
+      (Err(e), _) => {
+        app.data.decoder.decoded = None;
+        app.data.decoder.signature_verified = false;
+        app.handle_error(e);
+      }
+    };
+  }
+}
+
+pub fn print_decoded_token(token: &TokenData<Payload>, json: bool) {
+  match json {
+    true => {
+      println!("\nToken JSON\n----------");
+      println!(
+        "{}",
+        to_string_pretty(&TokenOutput::new(token.clone())).unwrap()
+      )
+    }
+    false => {
+      println!("\nToken header\n------------");
+      println!("{}\n", to_string_pretty(&token.header).unwrap());
+      println!("Token claims\n------------");
+      println!("{}", to_string_pretty(&token.claims).unwrap());
+    }
+  }
+}
+
+/// returns the base64 decoded values and signature verified result
+fn decode_token(
+  arguments: &DecodeArgs,
+) -> (JWTResult<TokenData<Payload>>, JWTResult<TokenData<Payload>>) {
+  let mut insecure_validator = Validation::new(Algorithm::HS256);
+  // disable signature validation as its not needed for just decoding
+  insecure_validator.insecure_disable_signature_validation();
+  insecure_validator.required_spec_claims = HashSet::new();
+  insecure_validator.validate_exp = false;
+  let insecure_decoding_key = DecodingKey::from_secret("".as_ref());
+
+  let decode_only = decode::<Payload>(&arguments.jwt, &insecure_decoding_key, &insecure_validator)
+    .map_err(Error::into);
+
+  let decode_only = decode_only.map(|mut token| {
+    if arguments.time_format_utc {
+      token.claims.convert_timestamps();
+    }
+    token
+  });
+
+  let algorithm = match decode_only.as_ref() {
+    Ok(data) => data.header.alg.clone(),
+    Err(_) => Algorithm::HS256,
+  };
+
+  let secret = match arguments.secret.len() {
+    0 => None,
+    _ => Some(decoding_key_from_secret(&algorithm, &arguments.secret)),
+  };
+
+  let mut secret_validator = Validation::new(algorithm);
+
+  secret_validator.leeway = 1000;
+
+  if arguments.ignore_exp {
+    secret_validator
+      .required_spec_claims
+      .retain(|claim| claim != "exp");
+    secret_validator.validate_exp = false;
+  }
+
+  let verified_token_data = match secret {
+    Some(Ok(secret_key)) => {
+      decode::<Payload>(&arguments.jwt, &secret_key, &secret_validator).map_err(Error::into)
+    }
+    Some(Err(err)) => Err(err),
+    None => decode::<Payload>(&arguments.jwt, &insecure_decoding_key, &secret_validator)
+      .map_err(Error::into),
+  };
+
+  (decode_only, verified_token_data)
+}
+
+fn decoding_key_from_secret(alg: &Algorithm, secret_string: &str) -> JWTResult<DecodingKey> {
   match alg {
     Algorithm::HS256 | Algorithm::HS384 | Algorithm::HS512 => {
       if secret_string.starts_with('@') {
@@ -182,92 +261,6 @@ pub fn decoding_key_from_secret(alg: &Algorithm, secret_string: &str) -> JWTResu
       }
     }
   }
-}
-
-pub fn decode_jwt_token(app: &mut App, token: String) {
-  let out = decode_token(&DecodeArgs::new(token));
-  match out {
-    Ok(decoded_token) => {
-      app.error = String::new();
-      app.data.decoded_token = Some(decoded_token);
-    }
-    Err(e) => app.handle_error(e),
-  };
-}
-
-pub fn print_decoded_token(token: &TokenData<Payload>, json: bool) {
-  match json {
-    true => {
-      println!("\nToken JSON\n----------");
-      println!(
-        "{}",
-        to_string_pretty(&TokenOutput::new(token.clone())).unwrap()
-      )
-    }
-    false => {
-      println!("\nToken header\n------------");
-      println!("{}\n", to_string_pretty(&token.header).unwrap());
-      println!("Token claims\n------------");
-      println!("{}", to_string_pretty(&token.claims).unwrap());
-    }
-  }
-}
-
-fn decode_token(arguments: &DecodeArgs) -> JWTResult<TokenData<Payload>> {
-  let algorithm = arguments.algorithm;
-  let secret = match arguments.secret.len() {
-    0 => None,
-    _ => Some(decoding_key_from_secret(&algorithm, &arguments.secret)),
-  };
-  let jwt = match arguments.jwt.as_str() {
-    "-" => {
-      let mut buffer = String::new();
-
-      io::stdin()
-        .read_line(&mut buffer)
-        .expect("STDIN was not valid UTF-8");
-
-      buffer
-    }
-    _ => arguments.jwt.clone(),
-  }
-  .trim()
-  .to_owned();
-
-  let mut secret_validator = Validation::new(algorithm);
-
-  secret_validator.leeway = 1000;
-
-  if arguments.ignore_exp {
-    secret_validator
-      .required_spec_claims
-      .retain(|claim| claim != "exp");
-    secret_validator.validate_exp = false;
-  }
-
-  let mut insecure_validator = secret_validator.clone();
-  let insecure_decoding_key = DecodingKey::from_secret("".as_ref());
-
-  insecure_validator.insecure_disable_signature_validation();
-  insecure_validator.required_spec_claims = HashSet::new();
-  insecure_validator.validate_exp = false;
-
-  let token_data = match secret {
-    Some(Ok(secret_key)) => {
-      decode::<Payload>(&jwt, &secret_key, &secret_validator).map_err(Error::into)
-    }
-    Some(Err(err)) => Err(err),
-    None => {
-      decode::<Payload>(&jwt, &insecure_decoding_key, &insecure_validator).map_err(Error::into)
-    }
-  };
-
-  token_data.map(|mut token| {
-    if arguments.time_format_utc {
-      token.claims.convert_timestamps();
-    }
-    token
-  })
 }
 
 fn map_external_error(ext_err: &Error) -> String {

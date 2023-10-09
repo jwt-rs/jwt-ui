@@ -28,12 +28,13 @@ use tokio::sync::Mutex;
 
 use crate::app::jwt::decode_jwt_token;
 
-/// kdash CLI
+/// JWT CLI
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None, override_usage = "Press `?` while running the app to see keybindings", before_help = BANNER)]
+#[command(author, version, about, long_about = None, before_help = BANNER)]
 pub struct Cli {
-  /// whether the CLI should run in TUI mode or just print to stdout
-  #[arg(short, long, value_parser)]
+  /// JWT token to decode [mandatory for stdout mode, optional for TUI mode]
+  #[clap(index = 1)]
+  #[clap(value_parser)]
   pub token: Option<String>,
   /// whether the CLI should run in TUI mode or just print to stdout
   #[arg(short, long, value_parser, default_value_t = false)]
@@ -42,8 +43,11 @@ pub struct Cli {
   #[arg(short, long, value_parser, default_value_t = false)]
   pub json: bool,
   /// Set the tick rate (milliseconds): the lower the number the higher the FPS. Must be less than 1000.
-  #[arg(short = 'r', long, value_parser, default_value_t = 250)]
+  #[arg(short, long, value_parser, default_value_t = 250)]
   pub tick_rate: u64,
+  /// secret for validating the JWT
+  #[arg(short = 'S', long, value_parser, default_value = "")]
+  pub secret: String,
 }
 
 #[tokio::main]
@@ -64,13 +68,13 @@ async fn main() -> Result<()> {
   let app = Arc::new(Mutex::new(App::new(cli.tick_rate, cli.token.clone())));
 
   if cli.stdout && cli.token.is_some() {
-    // print decoded result to terminal
+    // print decoded result to stdout
     let mut app = app.lock().await;
-    decode_jwt_token(&mut app, cli.token.unwrap());
-    if app.error.is_empty() && app.data.decoded_token.is_some() {
-      print_decoded_token(app.data.decoded_token.as_ref().unwrap(), cli.json);
+    decode_jwt_token(&mut app, cli.token.unwrap(), cli.secret);
+    if app.data.error.is_empty() && app.data.decoder.decoded.is_some() {
+      print_decoded_token(app.data.decoder.decoded.as_ref().unwrap(), cli.json);
     } else {
-      println!("{}", app.error);
+      println!("{}", app.data.error);
     }
   } else {
     // Launch the UI asynchronously
@@ -95,7 +99,6 @@ async fn start_ui(cli: Cli, app: &Arc<Mutex<App>>) -> Result<()> {
   terminal.hide_cursor()?;
   // custom events
   let events = event::Events::new(cli.tick_rate);
-  let mut is_first_render = true;
   // main UI loop
   loop {
     let mut app = app.lock().await;
@@ -126,11 +129,9 @@ async fn start_ui(cli: Cli, app: &Arc<Mutex<App>>) -> Result<()> {
       event::Event::MouseInput(mouse) => handlers::handle_mouse_events(mouse, &mut app).await,
       // handle tick events
       event::Event::Tick => {
-        app.on_tick(is_first_render).await;
+        app.on_tick().await;
       }
     }
-
-    is_first_render = false;
 
     if app.should_quit {
       break;

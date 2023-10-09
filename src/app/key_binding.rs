@@ -27,7 +27,8 @@ generate_keybindings! {
   submit,
   toggle_theme,
   cycle_main_views,
-  jump_to_debugger,
+  jump_to_decoder,
+  jump_to_encoder,
   jump_to_intro,
   copy_to_clipboard,
   pg_up,
@@ -109,10 +110,16 @@ pub const DEFAULT_KEYBINDING: KeyBindings = KeyBindings {
     desc: "Toggle theme",
     context: HContext::General,
   },
-  jump_to_debugger: KeyBinding {
+  jump_to_decoder: KeyBinding {
     key: Key::Char('D'),
     alt: None,
-    desc: "Switch to debugger view",
+    desc: "Switch to decoder view",
+    context: HContext::General,
+  },
+  jump_to_encoder: KeyBinding {
+    key: Key::Char('E'),
+    alt: None,
+    desc: "Switch to encoder view",
     context: HContext::General,
   },
   jump_to_intro: KeyBinding {

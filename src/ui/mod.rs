@@ -29,7 +29,7 @@ pub fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
   let block = Block::default().style(style_main_background(app.light_theme));
   f.render_widget(block, f.size());
 
-  let chunks = if !app.error.is_empty() {
+  let chunks = if !app.data.error.is_empty() {
     vertical_chunks(
       vec![
         Constraint::Length(3), // header
@@ -52,7 +52,7 @@ pub fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
 
   draw_app_header(f, app, chunks[0]);
 
-  if !app.error.is_empty() {
+  if !app.data.error.is_empty() {
     draw_app_error(f, app, chunks[1]);
   }
 
@@ -65,9 +65,10 @@ pub fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
     RouteId::Intro => {
       draw_intro(f, app, main_chunk);
     }
-    RouteId::Debugger => {
+    RouteId::Decoder => {
       draw_decoder(f, app, main_chunk);
     }
+    RouteId::Encoder => todo!(),
   }
 
   draw_app_footer(f, app, chunks[chunks.len() - 1]);
@@ -75,7 +76,7 @@ pub fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
 
 fn draw_app_header<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let chunks =
-    horizontal_chunks_with_margin(vec![Constraint::Length(75), Constraint::Min(0)], area, 1);
+    horizontal_chunks_with_margin(vec![Constraint::Length(50), Constraint::Min(0)], area, 1);
 
   let titles = app
     .main_tabs
@@ -104,8 +105,8 @@ fn draw_app_footer<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 
 fn draw_header_text<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let text: Vec<Line<'_>> = match app.get_current_route().id {
-    RouteId::Debugger => vec![Line::from(
-      "<tab> switch tabs | <char> select block | <↑↓> scroll | <?> help ",
+    RouteId::Decoder | RouteId::Encoder => vec![Line::from(
+      "<tab> switch tabs | <←→> select block | <c> copy block content | <↑↓> scroll | <?> help ",
     )],
     RouteId::Intro => vec![Line::from("<tab> switch tabs | <↑↓> scroll | <?> help ")],
     RouteId::Help => vec![],
@@ -119,11 +120,11 @@ fn draw_header_text<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 
 fn draw_app_error<B: Backend>(f: &mut Frame<'_, B>, app: &App, size: Rect) {
   let block = Block::default()
-    .title(" Error | close <esc> ")
+    .title(" Error ")
     .style(style_failure(app.light_theme))
     .borders(Borders::ALL);
 
-  let mut text = Text::from(app.error.clone());
+  let mut text = Text::from(app.data.error.clone());
   text.patch_style(style_failure(app.light_theme));
 
   let paragraph = Paragraph::new(text)

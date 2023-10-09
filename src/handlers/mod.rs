@@ -11,16 +11,16 @@ use crate::{
 
 pub async fn handle_key_events(key: Key, key_event: KeyEvent, app: &mut App) {
   // if input is enabled capture keystrokes
-  if app.data.token_input.input_mode == InputMode::Editing {
+  if app.data.decoder.encoded.input_mode == InputMode::Editing {
     if key == DEFAULT_KEYBINDING.esc.key {
-      app.data.token_input.input_mode = InputMode::Normal;
+      app.data.decoder.encoded.input_mode = InputMode::Normal;
     } else {
       app
         .data
-        .token_input
+        .decoder
+        .encoded
         .input
         .handle_event(&Event::Key(key_event));
-      decode_jwt_token(app, app.data.token_input.input.value().into());
     }
   } else {
     // First handle any global event and then move to route event
@@ -85,7 +85,7 @@ async fn handle_route_events(key: Key, app: &mut App) {
   // route specific events
   match app.get_current_route().id {
     // handle resource tabs on overview
-    RouteId::Debugger => {
+    RouteId::Decoder => {
       match key {
         _ if key == DEFAULT_KEYBINDING.right.key
           || key == DEFAULT_KEYBINDING.right.alt.unwrap() =>
@@ -98,7 +98,7 @@ async fn handle_route_events(key: Key, app: &mut App) {
           //   app.push_navigation_route(app.context_tabs.get_active_route().clone());
         }
         _ if key == DEFAULT_KEYBINDING.toggle_input_edit.key => {
-          app.data.token_input.input_mode = InputMode::Editing;
+          app.data.decoder.encoded.input_mode = InputMode::Editing;
         }
 
         // as these are tabs with index the order here matters, atleast for readability
@@ -172,30 +172,30 @@ mod tests {
     let mut app = App::default();
 
     app.route_home();
-    assert_eq!(app.data.token_input.input_mode, InputMode::Normal);
+    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Normal);
 
     let key_evt = KeyEvent::from(KeyCode::Char('f'));
     handle_key_events(Key::from(key_evt), key_evt, &mut app).await;
-    assert_eq!(app.data.token_input.input_mode, InputMode::Editing);
+    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Editing);
 
     let key_evt = KeyEvent::from(KeyCode::Esc);
     handle_key_events(Key::from(key_evt), key_evt, &mut app).await;
-    assert_eq!(app.data.token_input.input_mode, InputMode::Normal);
+    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Normal);
 
     let key_evt = KeyEvent::from(KeyCode::Char('e'));
     handle_key_events(Key::from(key_evt), key_evt, &mut app).await;
-    assert_eq!(app.data.token_input.input_mode, InputMode::Editing);
+    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Editing);
 
     let key_evt = KeyEvent::from(KeyCode::Char('f'));
     handle_key_events(Key::from(key_evt), key_evt, &mut app).await;
-    assert_eq!(app.data.token_input.input_mode, InputMode::Editing);
+    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Editing);
 
     let key_evt = KeyEvent::from(KeyCode::Esc);
     handle_key_events(Key::from(key_evt), key_evt, &mut app).await;
-    assert_eq!(app.data.token_input.input_mode, InputMode::Normal);
+    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Normal);
     let key_evt = KeyEvent::from(KeyCode::Char('f'));
     handle_key_events(Key::from(key_evt), key_evt, &mut app).await;
-    assert_eq!(app.data.token_input.input_mode, InputMode::Normal);
+    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Normal);
   }
 
   #[tokio::test]
