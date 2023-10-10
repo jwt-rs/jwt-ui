@@ -3,26 +3,18 @@ use tui_input::backend::crossterm::EventHandler;
 
 use crate::{
   app::{
-    jwt::decode_jwt_token, key_binding::DEFAULT_KEYBINDING, models::StatefulTable, ActiveBlock,
-    App, InputMode, RouteId,
+    key_binding::DEFAULT_KEYBINDING,
+    models::{Scrollable, StatefulTable},
+    ActiveBlock, App, InputMode, RouteId, TextInput,
   },
   event::Key,
 };
 
 pub async fn handle_key_events(key: Key, key_event: KeyEvent, app: &mut App) {
   // if input is enabled capture keystrokes
-  if app.data.decoder.encoded.input_mode == InputMode::Editing {
-    if key == DEFAULT_KEYBINDING.esc.key {
-      app.data.decoder.encoded.input_mode = InputMode::Normal;
-    } else {
-      app
-        .data
-        .decoder
-        .encoded
-        .input
-        .handle_event(&Event::Key(key_event));
-    }
-  } else {
+  if !is_text_editing(&mut app.data.decoder.encoded, key, key_event)
+    && !is_text_editing(&mut app.data.decoder.secret, key, key_event)
+  {
     // First handle any global event and then move to route event
     match key {
       _ if key == DEFAULT_KEYBINDING.esc.key => {
@@ -71,6 +63,19 @@ pub async fn handle_mouse_events(mouse: MouseEvent, app: &mut App) {
   }
 }
 
+fn is_text_editing(encoded: &mut TextInput, key: Key, key_event: KeyEvent) -> bool {
+  return if encoded.input_mode == InputMode::Editing {
+    if key == DEFAULT_KEYBINDING.esc.key {
+      encoded.input_mode = InputMode::Normal;
+    } else {
+      encoded.input.handle_event(&Event::Key(key_event));
+    }
+    true
+  } else {
+    false
+  };
+}
+
 fn handle_escape(app: &mut App) {
   match app.get_current_route().id {
     RouteId::Help => {
@@ -90,17 +95,20 @@ async fn handle_route_events(key: Key, app: &mut App) {
         _ if key == DEFAULT_KEYBINDING.right.key
           || key == DEFAULT_KEYBINDING.right.alt.unwrap() =>
         {
-          //   app.context_tabs.next();
-          //   app.push_navigation_route(app.context_tabs.get_active_route().clone());
+          app.data.decoder.blocks.next();
+          app.push_navigation_route(app.data.decoder.blocks.get_active_route().clone());
         }
         _ if key == DEFAULT_KEYBINDING.left.key || key == DEFAULT_KEYBINDING.left.alt.unwrap() => {
-          //   app.context_tabs.previous();
-          //   app.push_navigation_route(app.context_tabs.get_active_route().clone());
+          app.data.decoder.blocks.previous();
+          app.push_navigation_route(app.data.decoder.blocks.get_active_route().clone());
         }
         _ if key == DEFAULT_KEYBINDING.toggle_input_edit.key => {
-          app.data.decoder.encoded.input_mode = InputMode::Editing;
+          if app.get_current_route().active_block == ActiveBlock::DecoderToken {
+            app.data.decoder.encoded.input_mode = InputMode::Editing;
+          } else {
+            app.data.decoder.secret.input_mode = InputMode::Editing;
+          }
         }
-
         // as these are tabs with index the order here matters, atleast for readability
         _ => {}
       };
@@ -110,6 +118,7 @@ async fn handle_route_events(key: Key, app: &mut App) {
         _ => { /* Do nothing */ }
       }
     }
+    RouteId::Encoder => {}
     _ => { /* Do nothing */ }
   }
 }
@@ -121,13 +130,21 @@ fn handle_block_action<T: Clone>(key: Key, item: &StatefulTable<T>) -> Option<T>
   }
 }
 
-async fn handle_block_scroll(_app: &mut App, _up: bool, _is_mouse: bool, _page: bool) {
-  //   match app.get_current_route().active_block {
-  //     ActiveBlock::Describe | ActiveBlock::Yaml => app
-  //       .data
-  //       .describe_out
-  //       .handle_scroll(inverse_dir(up, is_mouse), page),
-  //   }X
+async fn handle_block_scroll(app: &mut App, up: bool, is_mouse: bool, page: bool) {
+  match app.get_current_route().active_block {
+    ActiveBlock::Help => app.help_docs.handle_scroll(up, page),
+    ActiveBlock::DecoderHeader => app
+      .data
+      .decoder
+      .header
+      .handle_scroll(inverse_dir(up, is_mouse), page),
+    ActiveBlock::DecoderPayload => app
+      .data
+      .decoder
+      .payload
+      .handle_scroll(inverse_dir(up, is_mouse), page),
+    _ => {}
+  }
 }
 
 #[cfg(target_arch = "x86_64")]

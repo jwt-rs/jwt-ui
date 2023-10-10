@@ -1,16 +1,22 @@
-pub(crate) mod jwt;
+pub(crate) mod jwt_decoder;
+pub(crate) mod jwt_encoder;
+pub(crate) mod jwt_utils;
 pub(crate) mod key_binding;
 pub(crate) mod models;
 mod utils;
 
 use jsonwebtoken::TokenData;
 use ratatui::layout::Rect;
+use serde::de;
+use serde_json::to_string_pretty;
 use tui_input::Input;
 
 use self::{
-  jwt::{decode_jwt_token, JWTError, Payload},
+  jwt_decoder::{decode_jwt_token, Decoder, Payload},
+  jwt_encoder::Encoder,
+  jwt_utils::JWTError,
   key_binding::DEFAULT_KEYBINDING,
-  models::{StatefulTable, TabRoute, TabsState},
+  models::{ScrollableTxt, StatefulTable, TabRoute, TabsState},
 };
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
@@ -46,25 +52,6 @@ const DEFAULT_ROUTE: Route = Route {
   active_block: ActiveBlock::DecoderToken,
 };
 
-#[derive(Default)]
-pub struct Decoder {
-  pub encoded: TextInput,
-  pub decoded: Option<TokenData<Payload>>,
-  pub secret: TextInput,
-  pub signature_verified: bool,
-}
-
-#[derive(Default)]
-pub struct Encoder {}
-
-/// Holds data state for various views
-#[derive(Default)]
-pub struct Data {
-  pub error: String,
-  pub decoder: Decoder,
-  pub encoder: Encoder,
-}
-
 #[derive(Default, Clone, Eq, PartialEq, Debug)]
 pub enum InputMode {
   #[default]
@@ -78,6 +65,14 @@ pub struct TextInput {
   pub input: Input,
   /// Current input mode
   pub input_mode: InputMode,
+}
+
+/// Holds data state for various views
+#[derive(Default)]
+pub struct Data {
+  pub error: String,
+  pub decoder: Decoder,
+  pub encoder: Encoder,
 }
 
 /// Holds main application state

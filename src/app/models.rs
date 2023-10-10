@@ -155,7 +155,7 @@ pub struct TabRoute {
   pub title: String,
   pub route: Route,
 }
-
+#[derive(Default)]
 pub struct TabsState {
   pub items: Vec<TabRoute>,
   pub index: usize,
@@ -185,21 +185,14 @@ impl TabsState {
   }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Default)]
 pub struct ScrollableTxt {
   items: Vec<String>,
   pub offset: u16,
 }
 
 impl ScrollableTxt {
-  pub fn new() -> ScrollableTxt {
-    ScrollableTxt {
-      items: vec![],
-      offset: 0,
-    }
-  }
-
-  pub fn with_string(item: String) -> ScrollableTxt {
+  pub fn new(item: String) -> ScrollableTxt {
     let items: Vec<&str> = item.split('\n').collect();
     let items: Vec<String> = items.iter().map(|it| it.to_string()).collect();
     ScrollableTxt { items, offset: 0 }
@@ -350,7 +343,7 @@ mod tests {
   //   }
   #[test]
   fn test_scrollable_txt() {
-    let mut stxt = ScrollableTxt::with_string("test\n multiline\n string".into());
+    let mut stxt = ScrollableTxt::new("test\n multiline\n string".into());
 
     assert_eq!(stxt.offset, 0);
     assert_eq!(stxt.items.len(), 3);
@@ -360,7 +353,7 @@ mod tests {
     stxt.scroll_down(1);
     assert_eq!(stxt.offset, 0);
 
-    let mut stxt2 = ScrollableTxt::with_string("te\nst\nmul\ntil\ni\nne\nstr\ni\nn\ng".into());
+    let mut stxt2 = ScrollableTxt::new("te\nst\nmul\ntil\ni\nne\nstr\ni\nn\ng".into());
     assert_eq!(stxt2.items.len(), 10);
     stxt2.scroll_down(1);
     assert_eq!(stxt2.offset, 1);

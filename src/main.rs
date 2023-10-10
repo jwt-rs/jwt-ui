@@ -12,7 +12,7 @@ use std::{
 };
 
 use anyhow::Result;
-use app::{jwt::print_decoded_token, App};
+use app::{jwt_decoder::print_decoded_token, App};
 use banner::BANNER;
 use clap::Parser;
 use crossterm::{
@@ -26,7 +26,7 @@ use ratatui::{
 };
 use tokio::sync::Mutex;
 
-use crate::app::jwt::decode_jwt_token;
+use crate::app::jwt_decoder::decode_jwt_token;
 
 /// JWT CLI
 #[derive(Parser, Debug)]
@@ -71,8 +71,8 @@ async fn main() -> Result<()> {
     // print decoded result to stdout
     let mut app = app.lock().await;
     decode_jwt_token(&mut app, cli.token.unwrap(), cli.secret);
-    if app.data.error.is_empty() && app.data.decoder.decoded.is_some() {
-      print_decoded_token(app.data.decoder.decoded.as_ref().unwrap(), cli.json);
+    if app.data.error.is_empty() && app.data.decoder.is_decoded() {
+      print_decoded_token(app.data.decoder.get_decoded().as_ref().unwrap(), cli.json);
     } else {
       println!("{}", app.data.error);
     }

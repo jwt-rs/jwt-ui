@@ -7,8 +7,8 @@ use ratatui::{
 
 use super::{
   utils::{
-    layout_block_active_span, style_highlight, style_primary, style_secondary,
-    title_with_dual_style, vertical_chunks,
+    layout_block_with_line, style_highlight, style_primary, style_secondary, title_with_dual_style,
+    vertical_chunks,
   },
   HIGHLIGHT,
 };
@@ -45,7 +45,7 @@ pub fn draw_help<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
         .style(style_secondary(app.light_theme))
         .bottom_margin(0),
     )
-    .block(layout_block_active_span(title, app.light_theme))
+    .block(layout_block_with_line(title, app.light_theme, true))
     .highlight_style(style_highlight())
     .highlight_symbol(HIGHLIGHT)
     .widths(&[Constraint::Percentage(100)]);

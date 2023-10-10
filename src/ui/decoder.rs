@@ -2,18 +2,16 @@ use ratatui::{
   backend::Backend,
   layout::{Constraint, Rect},
   style::Style,
-  text::{Line, Span, Text},
+  text::Text,
   widgets::{Block, Borders, Paragraph, Wrap},
   Frame,
 };
-use serde_json::to_string_pretty;
-use tui_input::Input;
 
 use super::utils::{
-  horizontal_chunks, layout_block, layout_block_default, layout_block_line, style_default,
+  horizontal_chunks, layout_block_with_line, layout_block_with_str, style_default, style_primary,
   style_secondary, title_with_dual_style, vertical_chunks, vertical_chunks_with_margin,
 };
-use crate::app::{App, InputMode, TextInput};
+use crate::app::{ActiveBlock, App, InputMode, TextInput};
 
 pub fn draw_decoder<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let chunks = horizontal_chunks(
@@ -27,11 +25,13 @@ pub fn draw_decoder<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 fn draw_encoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let title_hint = get_edit_hint(&app.data.decoder.encoded.input_mode);
 
-  let block = layout_block_line(title_with_dual_style(
-    " Encoded Token ".into(),
-    title_hint.into(),
+  let is_active =
+    app.data.decoder.blocks.get_active_route().active_block == ActiveBlock::DecoderToken;
+  let block = layout_block_with_line(
+    title_with_dual_style(" Encoded Token ".into(), title_hint.into(), app.light_theme),
     app.light_theme,
-  ));
+    is_active,
+  );
 
   f.render_widget(block, area);
 
@@ -43,9 +43,9 @@ fn draw_encoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let chunks = vertical_chunks(
     vec![
-      Constraint::Percentage(20),
+      Constraint::Percentage(30),
       Constraint::Percentage(40),
-      Constraint::Percentage(40),
+      Constraint::Percentage(30),
     ],
     area,
   );
@@ -58,40 +58,64 @@ fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
 
-  let block = layout_block_default(" Header: Algorithm & Token Type ");
+  let is_active =
+    app.data.decoder.blocks.get_active_route().active_block == ActiveBlock::DecoderHeader;
+
+  let block = layout_block_with_str(
+    " Header: Algorithm & Token Type ",
+    app.light_theme,
+    is_active,
+  );
 
   f.render_widget(block, area);
 
-  if app.data.decoder.decoded.is_some() {
-    let header = app.data.decoder.decoded.as_ref().unwrap().header.clone();
+  let header = app.data.decoder.header.get_txt();
 
-    let paragraph = Paragraph::new(to_string_pretty(&header).unwrap()).block(Block::default());
-    f.render_widget(paragraph, chunks[0]);
-  }
+  let mut txt = Text::from(header.clone());
+  txt.patch_style(style_primary(app.light_theme));
+
+  let paragraph = Paragraph::new(txt)
+    .block(Block::default())
+    .wrap(Wrap { trim: false })
+    .scroll((app.data.decoder.header.offset, 0));
+  f.render_widget(paragraph, chunks[0]);
 }
 
 fn draw_payload_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
+  let is_active =
+    app.data.decoder.blocks.get_active_route().active_block == ActiveBlock::DecoderPayload;
 
-  let block = layout_block_default(" Payload: Claims ");
+  let block = layout_block_with_str(" Payload: Claims ", app.light_theme, is_active);
 
   f.render_widget(block, area);
 
-  if app.data.decoder.decoded.is_some() {
-    let payload = app.data.decoder.decoded.as_ref().unwrap().claims.clone();
-    let paragraph = Paragraph::new(to_string_pretty(&payload).unwrap()).block(Block::default());
-    f.render_widget(paragraph, chunks[0]);
-  }
+  let payload = app.data.decoder.payload.get_txt();
+
+  let mut txt = Text::from(payload.clone());
+  txt.patch_style(style_primary(app.light_theme));
+
+  let paragraph = Paragraph::new(txt)
+    .block(Block::default())
+    .wrap(Wrap { trim: false })
+    .scroll((app.data.decoder.payload.offset, 0));
+  f.render_widget(paragraph, chunks[0]);
 }
 
 fn draw_signature_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let title_hint = get_edit_hint(&app.data.decoder.secret.input_mode);
 
-  let block = layout_block_line(title_with_dual_style(
-    " Verify Signature ".into(),
-    title_hint.into(),
+  let is_active =
+    app.data.decoder.blocks.get_active_route().active_block == ActiveBlock::DecoderSignature;
+  let block = layout_block_with_line(
+    title_with_dual_style(
+      " Verify Signature ".into(),
+      title_hint.into(),
+      app.light_theme,
+    ),
     app.light_theme,
-  ));
+    is_active,
+  );
 
   f.render_widget(block, area);
 
