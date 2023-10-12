@@ -1,25 +1,6 @@
-// adapted from https://github.com/mike-engel/jwt-cli
-use std::{
-  collections::{BTreeMap, HashSet},
-  fmt,
-};
+use std::fmt;
 
-use base64::{engine::general_purpose::STANDARD as base64_engine, Engine as _};
-use chrono::{TimeZone, Utc};
-use jsonwebtoken::{
-  decode,
-  errors::{Error, ErrorKind},
-  Algorithm, DecodingKey, Header, TokenData, Validation,
-};
-use serde_derive::{Deserialize, Serialize};
-use serde_json::{to_string_pretty, Value};
-use tui_input::Input;
-
-use super::{
-  models::{ScrollableTxt, TabRoute, TabsState},
-  utils::slurp_file,
-  ActiveBlock, App, InputMode, Route, RouteId, TextInput,
-};
+use jsonwebtoken::errors::{Error, ErrorKind};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum JWTError {
@@ -66,12 +47,12 @@ fn map_external_error(ext_err: &Error) -> String {
           "The secret provided isn't a valid ECDSA key".to_string()
         }
         ErrorKind::MissingRequiredClaim(missing) => if missing.as_str() == "exp" {
-          "`exp` is missing, but is required. This error can be ignored via the `--ignore-exp` parameter.".to_string()
+          "`exp` is missing, but is required. This error can be ignored by pressing `i`.".to_string()
         } else {
           format!("`{:?}` is missing, but is required", missing)
         }
         ErrorKind::ExpiredSignature => {
-          "The token has expired (or the `exp` claim is not set). This error can be ignored via the `--ignore-exp` parameter.".to_string()
+          "The token has expired (or the `exp` claim is not set). This error can be ignored by pressing `i`.".to_string()
         }
         ErrorKind::InvalidIssuer => {
           "The token issuer is invalid".to_string()

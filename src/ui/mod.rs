@@ -1,4 +1,5 @@
 mod decoder;
+mod encoder;
 mod help;
 mod intro;
 pub mod utils;
@@ -13,6 +14,7 @@ use ratatui::{
 
 use self::{
   decoder::draw_decoder,
+  encoder::draw_encoder,
   help::draw_help,
   intro::draw_intro,
   utils::{
@@ -68,7 +70,9 @@ pub fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
     RouteId::Decoder => {
       draw_decoder(f, app, main_chunk);
     }
-    RouteId::Encoder => todo!(),
+    RouteId::Encoder => {
+      draw_encoder(f, app, main_chunk);
+    }
   }
 
   draw_app_footer(f, app, chunks[chunks.len() - 1]);
@@ -105,10 +109,13 @@ fn draw_app_footer<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 
 fn draw_header_text<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let text: Vec<Line<'_>> = match app.get_current_route().id {
-    RouteId::Decoder | RouteId::Encoder => vec![Line::from(
-      "<tab> switch tabs | <←→> select block | <c> copy block content | <↑↓> scroll | <?> help ",
+    RouteId::Decoder => vec![Line::from(
+      "<?> help | <tab> switch tabs | <←→> select block | <u> toggle UTC dates | <↑↓> scroll ",
     )],
-    RouteId::Intro => vec![Line::from("<tab> switch tabs | <↑↓> scroll | <?> help ")],
+    RouteId::Encoder => vec![Line::from(
+      "<?> help | <tab> switch tabs | <←→> select block | <↑↓> scroll ",
+    )],
+    RouteId::Intro => vec![Line::from("<?> help | <tab> switch tabs | <↑↓> scroll ")],
     RouteId::Help => vec![],
   };
   let paragraph = Paragraph::new(text)

@@ -8,10 +8,10 @@ use ratatui::{
 };
 
 use super::utils::{
-  horizontal_chunks, layout_block_with_line, layout_block_with_str, style_default, style_primary,
-  style_secondary, title_with_dual_style, vertical_chunks, vertical_chunks_with_margin,
+  horizontal_chunks, layout_block_with_line, style_default, style_primary, style_secondary,
+  title_with_dual_style, vertical_chunks, vertical_chunks_with_margin,
 };
-use crate::app::{ActiveBlock, App, InputMode, TextInput};
+use crate::app::{ActiveBlock, App, InputMode, Route, TextInput};
 
 pub fn draw_decoder<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let chunks = horizontal_chunks(
@@ -23,20 +23,17 @@ pub fn draw_decoder<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 }
 
 fn draw_encoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
-  let title_hint = get_edit_hint(&app.data.decoder.encoded.input_mode);
-
-  let is_active =
-    app.data.decoder.blocks.get_active_route().active_block == ActiveBlock::DecoderToken;
-  let block = layout_block_with_line(
-    title_with_dual_style(" Encoded Token ".into(), title_hint.into(), app.light_theme),
+  let block = get_selectable_block(
+    "Encoded Token",
+    app.data.decoder.blocks.get_active_route(),
+    ActiveBlock::DecoderToken,
+    Some(&app.data.decoder.encoded.input_mode),
     app.light_theme,
-    is_active,
   );
 
   f.render_widget(block, area);
 
   let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
-
   render_input_widget(f, chunks[0], &app.data.decoder.encoded, app.light_theme);
 }
 
@@ -56,21 +53,19 @@ fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 }
 
 fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
-  let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
-
-  let is_active =
-    app.data.decoder.blocks.get_active_route().active_block == ActiveBlock::DecoderHeader;
-
-  let block = layout_block_with_str(
-    " Header: Algorithm & Token Type ",
+  let block = get_selectable_block(
+    "Header: Algorithm & Token Type",
+    app.data.decoder.blocks.get_active_route(),
+    ActiveBlock::DecoderHeader,
+    None,
     app.light_theme,
-    is_active,
   );
 
   f.render_widget(block, area);
 
-  let header = app.data.decoder.header.get_txt();
+  let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
 
+  let header = app.data.decoder.header.get_txt();
   let mut txt = Text::from(header.clone());
   txt.patch_style(style_primary(app.light_theme));
 
@@ -82,16 +77,18 @@ fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 }
 
 fn draw_payload_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
-  let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
-  let is_active =
-    app.data.decoder.blocks.get_active_route().active_block == ActiveBlock::DecoderPayload;
-
-  let block = layout_block_with_str(" Payload: Claims ", app.light_theme, is_active);
-
+  let block = get_selectable_block(
+    "Payload: Claims",
+    app.data.decoder.blocks.get_active_route(),
+    ActiveBlock::DecoderPayload,
+    None,
+    app.light_theme,
+  );
   f.render_widget(block, area);
 
-  let payload = app.data.decoder.payload.get_txt();
+  let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
 
+  let payload = app.data.decoder.payload.get_txt();
   let mut txt = Text::from(payload.clone());
   txt.patch_style(style_primary(app.light_theme));
 
@@ -103,18 +100,12 @@ fn draw_payload_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 }
 
 fn draw_signature_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
-  let title_hint = get_edit_hint(&app.data.decoder.secret.input_mode);
-
-  let is_active =
-    app.data.decoder.blocks.get_active_route().active_block == ActiveBlock::DecoderSignature;
-  let block = layout_block_with_line(
-    title_with_dual_style(
-      " Verify Signature ".into(),
-      title_hint.into(),
-      app.light_theme,
-    ),
+  let block = get_selectable_block(
+    "Verify Signature",
+    app.data.decoder.blocks.get_active_route(),
+    ActiveBlock::DecoderSecret,
+    Some(&app.data.decoder.secret.input_mode),
     app.light_theme,
-    is_active,
   );
 
   f.render_widget(block, area);
@@ -125,9 +116,7 @@ fn draw_signature_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect)
   let mut text = Text::from(
     "Prepend 'b64:' for base64 encoded secret. Prepend '@' for file path (.pem, .pk8, .der)",
   );
-
   text.patch_style(style_default(app.light_theme));
-
   let paragraph = Paragraph::new(text).block(Block::default());
 
   f.render_widget(paragraph, chunks[0]);
@@ -174,11 +163,39 @@ fn render_input_widget<B: Backend>(
 }
 
 // Utility methods
-fn get_edit_hint(input_mode: &InputMode) -> &str {
-  match input_mode {
-    InputMode::Normal => "(Press <e> to edit) ",
-    InputMode::Editing => "(Press <esc> to stop) ",
+fn get_hint(input_mode: &InputMode, is_active: bool) -> &str {
+  if is_active {
+    match input_mode {
+      InputMode::Normal => "(Press <e> to edit | <c> to copy) ",
+      InputMode::Editing => "(Press <esc> to stop editing | <c> to copy) ",
+    }
+  } else {
+    ""
   }
+}
+
+fn get_selectable_block(
+  title: &str,
+  route: &Route,
+  block: ActiveBlock,
+  input_mode: Option<&InputMode>,
+  light_theme: bool,
+) -> Block<'static> {
+  let is_active = route.active_block == block;
+  let title_hint = if let Some(im) = input_mode {
+    get_hint(im, is_active)
+  } else if is_active {
+    "(Press <c> to copy) "
+  } else {
+    ""
+  };
+
+  let block = layout_block_with_line(
+    title_with_dual_style(format!(" {} ", title), title_hint.into()),
+    light_theme,
+    is_active,
+  );
+  block
 }
 
 fn get_input_style(input_mode: &InputMode, light: bool) -> Style {

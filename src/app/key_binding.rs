@@ -37,6 +37,8 @@ generate_keybindings! {
   down,
   left,
   right,
+  toggle_utc_dates,
+  toggle_ignore_exp,
   toggle_input_edit,
   delete_prev_char,
   go_to_prev_char,
@@ -54,8 +56,9 @@ generate_keybindings! {
 #[derive(PartialEq, Eq, Clone, Copy, Hash, Debug)]
 pub enum HContext {
   General,
-  Debugger,
-  Editor,
+  Editable,
+  Decoder,
+  Encoder,
   Introduction,
 }
 
@@ -83,7 +86,7 @@ pub const DEFAULT_KEYBINDING: KeyBindings = KeyBindings {
   esc: KeyBinding {
     key: Key::Esc,
     alt: None,
-    desc: "Close child page/Go back",
+    desc: "Close child page/Go back/Stop editing",
     context: HContext::General,
   },
   help: KeyBinding {
@@ -167,88 +170,98 @@ pub const DEFAULT_KEYBINDING: KeyBindings = KeyBindings {
   left: KeyBinding {
     key: Key::Left,
     alt: Some(Key::Char('h')),
-    desc: "Next block",
-    context: HContext::Debugger,
+    desc: "Focus next block",
+    context: HContext::General,
   },
   right: KeyBinding {
     key: Key::Right,
     alt: Some(Key::Char('l')),
-    desc: "Previous block",
-    context: HContext::Debugger,
+    desc: "Focus previous block",
+    context: HContext::General,
+  },
+  toggle_utc_dates: KeyBinding {
+    key: Key::Char('u'),
+    alt: None,
+    desc: "Toggle showing dates in UTC format",
+    context: HContext::Decoder,
+  },
+  toggle_ignore_exp: KeyBinding {
+    key: Key::Char('i'),
+    alt: None,
+    desc: "Toggle ignoring exp claim from validation (default ignored)",
+    context: HContext::Decoder,
   },
   toggle_input_edit: KeyBinding {
     key: Key::Char('e'),
     alt: None,
     desc: "Enable text input edit mode",
-    context: HContext::Debugger,
+    context: HContext::Editable,
   },
-
-  // (Delete, KeyModifiers::CONTROL) => Some(DeleteNextWord),
   delete_prev_char: KeyBinding {
     key: Key::Backspace,
     alt: Some(Key::Ctrl('h')),
     desc: "Delete previous character",
-    context: HContext::Editor,
+    context: HContext::Editable,
   },
   go_to_prev_char: KeyBinding {
     key: Key::Left,
     alt: Some(Key::Ctrl('b')),
     desc: "Goto previous character",
-    context: HContext::Editor,
+    context: HContext::Editable,
   },
   go_to_prev_word: KeyBinding {
     key: Key::CtrlK(KeyCode::Left),
     alt: Some(Key::Meta('b')),
     desc: "Goto previous word",
-    context: HContext::Editor,
+    context: HContext::Editable,
   },
   go_to_next_char: KeyBinding {
     key: Key::Right,
     alt: Some(Key::Ctrl('f')),
     desc: "Goto next character",
-    context: HContext::Editor,
+    context: HContext::Editable,
   },
   go_to_next_word: KeyBinding {
     key: Key::CtrlK(KeyCode::Right),
     alt: Some(Key::Meta('f')),
     desc: "Goto next word",
-    context: HContext::Editor,
+    context: HContext::Editable,
   },
   delete_line: KeyBinding {
     key: Key::Ctrl('u'),
     alt: None,
     desc: "Delete line",
-    context: HContext::Editor,
+    context: HContext::Editable,
   },
   delete_prev_word: KeyBinding {
     key: Key::Meta('d'),
     alt: Some(Key::Ctrl('w')),
     desc: "Delete previous word",
-    context: HContext::Editor,
+    context: HContext::Editable,
   },
   delete_next_word: KeyBinding {
     key: Key::CtrlK(KeyCode::Delete),
     alt: None,
     desc: "Delete next word",
-    context: HContext::Editor,
+    context: HContext::Editable,
   },
   delete_till_end: KeyBinding {
     key: Key::Ctrl('k'),
     alt: None,
     desc: "Delete till end",
-    context: HContext::Editor,
+    context: HContext::Editable,
   },
   go_to_start: KeyBinding {
     key: Key::Home,
     alt: Some(Key::Ctrl('a')),
     desc: "Goto start",
-    context: HContext::Editor,
+    context: HContext::Editable,
   },
   go_to_end: KeyBinding {
     key: Key::End,
     alt: Some(Key::Ctrl('e')),
     desc: "Goto end",
-    context: HContext::Editor,
+    context: HContext::Editable,
   },
 };
 

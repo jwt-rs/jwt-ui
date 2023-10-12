@@ -3,14 +3,13 @@ use tui_input::backend::crossterm::EventHandler;
 
 use crate::{
   app::{
-    key_binding::DEFAULT_KEYBINDING,
-    models::{Scrollable, StatefulTable},
-    ActiveBlock, App, InputMode, RouteId, TextInput,
+    key_binding::DEFAULT_KEYBINDING, models::Scrollable, ActiveBlock, App, InputMode, RouteId,
+    TextInput,
   },
   event::Key,
 };
 
-pub async fn handle_key_events(key: Key, key_event: KeyEvent, app: &mut App) {
+pub fn handle_key_events(key: Key, key_event: KeyEvent, app: &mut App) {
   // if input is enabled capture keystrokes
   if !is_text_editing(&mut app.data.decoder.encoded, key, key_event)
     && !is_text_editing(&mut app.data.decoder.secret, key, key_event)
@@ -24,16 +23,22 @@ pub async fn handle_key_events(key: Key, key_event: KeyEvent, app: &mut App) {
         app.should_quit = true;
       }
       _ if key == DEFAULT_KEYBINDING.up.key || key == DEFAULT_KEYBINDING.up.alt.unwrap() => {
-        handle_block_scroll(app, true, false, false).await;
+        handle_block_scroll(app, true, false, false);
       }
       _ if key == DEFAULT_KEYBINDING.down.key || key == DEFAULT_KEYBINDING.down.alt.unwrap() => {
-        handle_block_scroll(app, false, false, false).await;
+        handle_block_scroll(app, false, false, false);
       }
       _ if key == DEFAULT_KEYBINDING.pg_up.key => {
-        handle_block_scroll(app, true, false, true).await;
+        handle_block_scroll(app, true, false, true);
       }
       _ if key == DEFAULT_KEYBINDING.pg_down.key => {
-        handle_block_scroll(app, false, false, true).await;
+        handle_block_scroll(app, false, false, true);
+      }
+      _ if key == DEFAULT_KEYBINDING.right.key || key == DEFAULT_KEYBINDING.right.alt.unwrap() => {
+        handle_right_key_events(app);
+      }
+      _ if key == DEFAULT_KEYBINDING.left.key || key == DEFAULT_KEYBINDING.left.alt.unwrap() => {
+        handle_left_key_events(app);
       }
       _ if key == DEFAULT_KEYBINDING.toggle_theme.key => {
         app.light_theme = !app.light_theme;
@@ -49,88 +54,141 @@ pub async fn handle_key_events(key: Key, key_event: KeyEvent, app: &mut App) {
       _ if key == DEFAULT_KEYBINDING.cycle_main_views.key => {
         app.cycle_main_routes();
       }
-      _ => handle_route_events(key, app).await,
+      _ if key == DEFAULT_KEYBINDING.toggle_input_edit.key => {
+        handle_edit_event(app);
+      }
+      _ if key == DEFAULT_KEYBINDING.copy_to_clipboard.key => {
+        handle_copy_event(app);
+      }
+      _ => handle_route_events(key, app),
     }
   }
 }
 
-pub async fn handle_mouse_events(mouse: MouseEvent, app: &mut App) {
+pub fn handle_mouse_events(mouse: MouseEvent, app: &mut App) {
   match mouse.kind {
     // mouse scrolling is inverted
-    MouseEventKind::ScrollDown => handle_block_scroll(app, true, true, false).await,
-    MouseEventKind::ScrollUp => handle_block_scroll(app, false, true, false).await,
+    MouseEventKind::ScrollDown => handle_block_scroll(app, true, true, false),
+    MouseEventKind::ScrollUp => handle_block_scroll(app, false, true, false),
     _ => {}
   }
 }
 
-fn is_text_editing(encoded: &mut TextInput, key: Key, key_event: KeyEvent) -> bool {
-  return if encoded.input_mode == InputMode::Editing {
+fn handle_edit_event(app: &mut App) {
+  match app.get_current_route().active_block {
+    ActiveBlock::DecoderToken => {
+      app.data.decoder.encoded.input_mode = InputMode::Editing;
+    }
+    _ => {
+      app.data.decoder.secret.input_mode = InputMode::Editing;
+    }
+  }
+}
+
+fn handle_copy_event(app: &mut App) {
+  match app.get_current_route().active_block {
+    ActiveBlock::DecoderToken => {
+      copy_to_clipboard(app.data.decoder.encoded.input.value().into());
+    }
+    ActiveBlock::DecoderHeader => {
+      copy_to_clipboard(app.data.decoder.header.get_txt());
+    }
+    ActiveBlock::DecoderPayload => {
+      copy_to_clipboard(app.data.decoder.payload.get_txt());
+    }
+    ActiveBlock::DecoderSecret => {
+      copy_to_clipboard(app.data.decoder.secret.input.value().into());
+    }
+    ActiveBlock::EncoderToken => {
+      todo!()
+      //   copy_to_clipboard(app.data.decoder.encoded.input.value().into());
+    }
+    ActiveBlock::EncoderHeader => {
+      todo!()
+      //   copy_to_clipboard(app.data.decoder.encoded.input.value().into());
+    }
+    ActiveBlock::EncoderPayload => {
+      todo!()
+      //   copy_to_clipboard(app.data.decoder.encoded.input.value().into());
+    }
+    ActiveBlock::EncoderSecret => {
+      todo!()
+      //   copy_to_clipboard(app.data.decoder.encoded.input.value().into());
+    }
+    _ => { /* Do nothing */ }
+  }
+}
+
+fn is_text_editing(input: &mut TextInput, key: Key, key_event: KeyEvent) -> bool {
+  if input.input_mode == InputMode::Editing {
     if key == DEFAULT_KEYBINDING.esc.key {
-      encoded.input_mode = InputMode::Normal;
+      input.input_mode = InputMode::Normal;
     } else {
-      encoded.input.handle_event(&Event::Key(key_event));
+      input.input.handle_event(&Event::Key(key_event));
     }
     true
   } else {
     false
-  };
+  }
 }
 
 fn handle_escape(app: &mut App) {
-  match app.get_current_route().id {
-    RouteId::Help => {
-      app.pop_navigation_stack();
-    }
-    _ => {}
+  if app.get_current_route().id == RouteId::Help {
+    app.pop_navigation_stack();
   }
 }
 
 // Handle event for the current active block
-async fn handle_route_events(key: Key, app: &mut App) {
+fn handle_route_events(key: Key, app: &mut App) {
   // route specific events
   match app.get_current_route().id {
     // handle resource tabs on overview
     RouteId::Decoder => {
       match key {
-        _ if key == DEFAULT_KEYBINDING.right.key
-          || key == DEFAULT_KEYBINDING.right.alt.unwrap() =>
-        {
-          app.data.decoder.blocks.next();
-          app.push_navigation_route(app.data.decoder.blocks.get_active_route().clone());
+        _ if key == DEFAULT_KEYBINDING.toggle_utc_dates.key => {
+          app.data.decoder.utc_dates = !app.data.decoder.utc_dates;
         }
-        _ if key == DEFAULT_KEYBINDING.left.key || key == DEFAULT_KEYBINDING.left.alt.unwrap() => {
-          app.data.decoder.blocks.previous();
-          app.push_navigation_route(app.data.decoder.blocks.get_active_route().clone());
+        _ if key == DEFAULT_KEYBINDING.toggle_ignore_exp.key => {
+          app.data.decoder.ignore_exp = !app.data.decoder.ignore_exp;
         }
-        _ if key == DEFAULT_KEYBINDING.toggle_input_edit.key => {
-          if app.get_current_route().active_block == ActiveBlock::DecoderToken {
-            app.data.decoder.encoded.input_mode = InputMode::Editing;
-          } else {
-            app.data.decoder.secret.input_mode = InputMode::Editing;
-          }
-        }
-        // as these are tabs with index the order here matters, atleast for readability
+        // as these are tabs with index the order here matters, at least for readability
         _ => {}
       };
-
-      // handle block specific stuff
-      match app.get_current_route().active_block {
-        _ => { /* Do nothing */ }
-      }
     }
     RouteId::Encoder => {}
     _ => { /* Do nothing */ }
   }
 }
 
-fn handle_block_action<T: Clone>(key: Key, item: &StatefulTable<T>) -> Option<T> {
-  match key {
-    _ if key == DEFAULT_KEYBINDING.submit.key => item.get_selected_item_copy(),
-    _ => None,
+fn handle_left_key_events(app: &mut App) {
+  // route specific events
+  match app.get_current_route().id {
+    RouteId::Decoder => {
+      app.data.decoder.blocks.previous();
+      app.push_navigation_route(app.data.decoder.blocks.get_active_route().clone());
+    }
+    RouteId::Encoder => {}
+    _ => {
+      todo!()
+    }
   }
 }
 
-async fn handle_block_scroll(app: &mut App, up: bool, is_mouse: bool, page: bool) {
+fn handle_right_key_events(app: &mut App) {
+  // route specific events
+  match app.get_current_route().id {
+    RouteId::Decoder => {
+      app.data.decoder.blocks.next();
+      app.push_navigation_route(app.data.decoder.blocks.get_active_route().clone());
+    }
+    RouteId::Encoder => {}
+    _ => {
+      todo!()
+    }
+  }
+}
+
+fn handle_block_scroll(app: &mut App, up: bool, is_mouse: bool, page: bool) {
   match app.get_current_route().active_block {
     ActiveBlock::Help => app.help_docs.handle_scroll(up, page),
     ActiveBlock::DecoderHeader => app
@@ -175,6 +233,8 @@ fn inverse_dir(up: bool, is_mouse: bool) -> bool {
 mod tests {
   use crossterm::event::KeyCode;
 
+  use crate::app::{models::ScrollableTxt, Route};
+
   use super::*;
 
   #[test]
@@ -185,109 +245,76 @@ mod tests {
 
   #[tokio::test]
 
-  async fn test_handle_key_events_for_filter() {
+  async fn test_handle_key_events_for_editor() {
     let mut app = App::default();
 
     app.route_home();
-    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Normal);
-
-    let key_evt = KeyEvent::from(KeyCode::Char('f'));
-    handle_key_events(Key::from(key_evt), key_evt, &mut app).await;
-    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Editing);
-
-    let key_evt = KeyEvent::from(KeyCode::Esc);
-    handle_key_events(Key::from(key_evt), key_evt, &mut app).await;
     assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Normal);
 
     let key_evt = KeyEvent::from(KeyCode::Char('e'));
-    handle_key_events(Key::from(key_evt), key_evt, &mut app).await;
+    handle_key_events(Key::from(key_evt), key_evt, &mut app);
     assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Editing);
 
     let key_evt = KeyEvent::from(KeyCode::Char('f'));
-    handle_key_events(Key::from(key_evt), key_evt, &mut app).await;
+    handle_key_events(Key::from(key_evt), key_evt, &mut app);
     assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Editing);
 
     let key_evt = KeyEvent::from(KeyCode::Esc);
-    handle_key_events(Key::from(key_evt), key_evt, &mut app).await;
-    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Normal);
-    let key_evt = KeyEvent::from(KeyCode::Char('f'));
-    handle_key_events(Key::from(key_evt), key_evt, &mut app).await;
+    handle_key_events(Key::from(key_evt), key_evt, &mut app);
     assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Normal);
   }
 
-  #[tokio::test]
-  async fn test_decode_secret() {
-    const DATA1: &str = "Hello, World!";
-    const DATA2: &str =
-      "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit";
-
+  #[test]
+  fn test_handle_block_scroll_with_help_block() {
     let mut app = App::default();
-    app.route_home();
+    app.push_navigation_route(Route {
+      id: RouteId::Help,
+      active_block: ActiveBlock::Help,
+    });
 
-    // let mut secret = KubeSecret::default();
-    // // ByteString base64 encodes the data
-    // secret
-    //   .data
-    //   .insert(String::from("key1"), ByteString(DATA1.as_bytes().into()));
-    // secret
-    //   .data
-    //   .insert(String::from("key2"), ByteString(DATA2.as_bytes().into()));
+    assert_eq!(app.help_docs.state.selected(), Some(0));
 
-    // // ensure that 'x' decodes the secret data
-    // assert!(
-    //   handle_describe_decode_or_yaml_action(
-    //     Key::Char('x'),
-    //     &mut app,
-    //     &secret,
-    //     IoCmdEvent::GetDescribe {
-    //       kind: "secret".to_owned(),
-    //       value: "name".to_owned(),
-    //       ns: Some("namespace".to_owned()),
-    //     }
-    //   )
-    //   .await
-    // );
+    handle_block_scroll(&mut app, true, false, false);
+    assert_eq!(app.help_docs.state.selected(), Some(0));
 
-    // assert!(app
-    //   .data
-    //   .describe_out
-    //   .get_txt()
-    //   .contains(format!("key1: {}", DATA1).as_str()));
-    // assert!(app
-    //   .data
-    //   .describe_out
-    //   .get_txt()
-    //   .contains(format!("key2: {}", DATA2).as_str()));
+    handle_block_scroll(&mut app, false, false, false);
+    assert_eq!(app.help_docs.state.selected(), Some(1));
+
+    handle_block_scroll(&mut app, false, false, true);
+    assert_eq!(app.help_docs.state.selected(), Some(11));
+
+    handle_block_scroll(&mut app, true, false, true);
+    assert_eq!(app.help_docs.state.selected(), Some(1));
   }
 
-  #[tokio::test]
-  async fn test_handle_scroll() {
+  #[test]
+  fn test_handle_block_scroll_with_decoder_header_block() {
     let mut app = App::default();
+    app.data.decoder.header = ScrollableTxt::new("test\n multiline\n string".into());
+    app.push_navigation_route(Route {
+      id: RouteId::Decoder,
+      active_block: ActiveBlock::DecoderHeader,
+    });
 
-    app.route_home();
-    // assert_eq!(app.data.pods.state.selected(), None);
+    handle_block_scroll(&mut app, false, false, false);
+    assert_eq!(app.data.decoder.header.offset, 0);
 
-    // app
-    //   .data
-    //   .pods
-    //   .set_items(vec![KubePod::default(), KubePod::default()]);
+    app.data.decoder.header =
+      ScrollableTxt::new("te\nst\nm\n\n\n\n\n\n\n\n\nul\ntil\ni\nne\nstr\ni\nn\ng".into());
 
-    // mouse scroll
-    // assert_eq!(app.data.pods.state.selected(), Some(0));
-    handle_block_scroll(&mut app, false, true, false).await;
-    // assert_eq!(app.data.pods.state.selected(), Some(1));
-    handle_block_scroll(&mut app, true, true, false).await;
-    // assert_eq!(app.data.pods.state.selected(), Some(0));
+    handle_block_scroll(&mut app, false, false, false);
+    assert_eq!(app.data.decoder.header.offset, 1);
 
-    // check logs keyboard scroll
-    // app.push_navigation_stack(RouteId::Home, ActiveBlock::Logs);
-    // assert_eq!(app.data.logs.state.selected(), None);
+    handle_block_scroll(&mut app, false, false, false);
+    assert_eq!(app.data.decoder.header.offset, 2);
 
-    // app.data.logs.add_record("record".to_string());
-    // app.data.logs.add_record("record 2".to_string());
-    // app.data.logs.add_record("record 3".to_string());
+    handle_block_scroll(&mut app, false, false, true);
+    assert_eq!(app.data.decoder.header.offset, 12);
 
-    handle_block_scroll(&mut app, true, false, false).await;
-    // assert_eq!(app.data.logs.state.selected(), Some(0));
+    handle_block_scroll(&mut app, true, false, true);
+    assert_eq!(app.data.decoder.header.offset, 2);
+
+    handle_block_scroll(&mut app, true, false, true);
+    assert_eq!(app.data.decoder.header.offset, 0);
   }
 }

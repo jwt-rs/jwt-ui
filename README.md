@@ -1,4 +1,4 @@
-# JWT CLI - A command line UI for decoding JSON Web Tokens
+# JWT CLI - A command line UI for decoding/encoding JSON Web Tokens
 
 ![ci](https://github.com/jwt-rs/kdash/actions/workflows/ci.yml/badge.svg)
 ![cd](https://github.com/jwt-rs/kdash/actions/workflows/cd.yml/badge.svg)
@@ -16,7 +16,7 @@
 
 ![logo](artwork/logo.png)
 
-A command line UI for decoding JSON Web Tokens
+A command line UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](https://jwt.io/) and [jwt-cli](https://github.com/mike-engel/jwt-cli)
 
 ![UI](screenshots/ui.gif)
 

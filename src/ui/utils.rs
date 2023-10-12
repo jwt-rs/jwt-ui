@@ -1,17 +1,13 @@
 use std::{collections::BTreeMap, rc::Rc};
 
 use ratatui::{
-  backend::Backend,
   layout::{Constraint, Direction, Layout, Rect},
   style::{Color, Modifier, Style},
-  text::{Line, Span, Text},
-  widgets::{Block, Borders, Paragraph, Row},
-  Frame,
+  text::{Line, Span},
+  widgets::{Block, Borders},
 };
 
 // Utils
-
-pub static COPY_HINT: &str = "| copy <c>";
 
 // default colors
 pub const COLOR_TEAL: Color = Color::Rgb(35, 50, 55);
@@ -128,10 +124,6 @@ pub fn style_highlight() -> Style {
   Style::default().add_modifier(Modifier::REVERSED)
 }
 
-pub fn table_header_style(cells: Vec<&str>, light: bool) -> Row<'_> {
-  Row::new(cells).style(style_default(light)).bottom_margin(0)
-}
-
 pub fn horizontal_chunks(constraints: Vec<Constraint>, size: Rect) -> Rc<[Rect]> {
   Layout::default()
     .constraints(<Vec<Constraint> as AsRef<[Constraint]>>::as_ref(
@@ -182,10 +174,6 @@ pub fn layout_block(title: Span<'_>) -> Block<'_> {
   Block::default().borders(Borders::ALL).title(title)
 }
 
-pub fn layout_block_top_border(title: Line<'_>) -> Block<'_> {
-  Block::default().borders(Borders::TOP).title(title)
-}
-
 pub fn layout_block_with_str(title: &str, light: bool, is_active: bool) -> Block<'_> {
   layout_block_with_line(title_style(title), light, is_active)
 }
@@ -196,8 +184,6 @@ pub fn layout_block_with_line(title: Line<'_>, light: bool, is_active: bool) -> 
   } else {
     style_default(light)
   };
-  let mut title = title.clone();
-  title.patch_style(style);
 
   Block::default()
     .borders(Borders::ALL)
@@ -205,7 +191,7 @@ pub fn layout_block_with_line(title: Line<'_>, light: bool, is_active: bool) -> 
     .style(style)
 }
 
-pub fn title_with_dual_style<'a>(part_1: String, part_2: String, light: bool) -> Line<'a> {
+pub fn title_with_dual_style<'a>(part_1: String, part_2: String) -> Line<'a> {
   Line::from(vec![
     Span::styled(part_1, Style::default().add_modifier(Modifier::BOLD)),
     Span::styled(part_2, Style::default()),
@@ -247,28 +233,6 @@ pub fn centered_rect(width: u16, height: u16, r: Rect) -> Rect {
       .as_ref(),
     )
     .split(popup_layout[1])[1]
-}
-
-pub fn loading<B: Backend>(
-  f: &mut Frame<'_, B>,
-  block: Block<'_>,
-  area: Rect,
-  is_loading: bool,
-  light: bool,
-) {
-  if is_loading {
-    let text = "\n\n Loading ...\n\n".to_owned();
-    let mut text = Text::from(text);
-    text.patch_style(style_secondary(light));
-
-    // Contains the text
-    let paragraph = Paragraph::new(text)
-      .style(style_secondary(light))
-      .block(block);
-    f.render_widget(paragraph, area);
-  } else {
-    f.render_widget(block, area)
-  }
 }
 
 #[cfg(test)]

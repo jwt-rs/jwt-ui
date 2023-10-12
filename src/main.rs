@@ -65,12 +65,16 @@ async fn main() -> Result<()> {
   }
 
   // Initialize app state
-  let app = Arc::new(Mutex::new(App::new(cli.tick_rate, cli.token.clone())));
+  let app = Arc::new(Mutex::new(App::new(
+    cli.tick_rate,
+    cli.token.clone(),
+    cli.secret.clone(),
+  )));
 
   if cli.stdout && cli.token.is_some() {
     // print decoded result to stdout
     let mut app = app.lock().await;
-    decode_jwt_token(&mut app, cli.token.unwrap(), cli.secret);
+    decode_jwt_token(&mut app);
     if app.data.error.is_empty() && app.data.decoder.is_decoded() {
       print_decoded_token(app.data.decoder.get_decoded().as_ref().unwrap(), cli.json);
     } else {
@@ -105,7 +109,7 @@ async fn start_ui(cli: Cli, app: &Arc<Mutex<App>>) -> Result<()> {
     // Get the size of the screen on each loop to account for resize event
     if let Ok(size) = terminal.backend().size() {
       // Reset the size if the terminal was resized
-      if app.refresh || app.size != size {
+      if app.size != size {
         app.size = size;
       }
     };
@@ -123,10 +127,10 @@ async fn start_ui(cli: Cli, app: &Arc<Mutex<App>>) -> Result<()> {
           break;
         }
         // handle all other keys
-        handlers::handle_key_events(key, key_event, &mut app).await
+        handlers::handle_key_events(key, key_event, &mut app);
       }
       // handle mouse events
-      event::Event::MouseInput(mouse) => handlers::handle_mouse_events(mouse, &mut app).await,
+      event::Event::MouseInput(mouse) => handlers::handle_mouse_events(mouse, &mut app),
       // handle tick events
       event::Event::Tick => {
         app.on_tick().await;

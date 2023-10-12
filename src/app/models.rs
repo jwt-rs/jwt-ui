@@ -138,18 +138,6 @@ impl<T> Scrollable for StatefulTable<T> {
   }
 }
 
-impl<T: Clone> StatefulTable<T> {
-  /// a clone of the currently selected item.
-  /// for mutable ref use state.selected() and fetch from items when needed
-  pub fn get_selected_item_copy(&self) -> Option<T> {
-    if !self.items.is_empty() {
-      self.state.selected().map(|i| self.items[i].clone())
-    } else {
-      None
-    }
-  }
-}
-
 #[derive(Clone)]
 pub struct TabRoute {
   pub title: String,
@@ -222,125 +210,122 @@ impl Scrollable for ScrollableTxt {
 #[cfg(test)]
 mod tests {
 
+  use crate::app::RouteId;
+
   use super::*;
 
   #[test]
-  fn test_kube_resource() {
-    struct TestStruct {
-      name: String,
-    }
+  fn test_stateful_table() {
+    let mut sft: StatefulTable<String> = StatefulTable::new();
 
-    // assert_eq!(
-    //   ts.resource_to_yaml(),
-    //   "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: test\n  namespace: test\n"
-    // )
+    assert_eq!(sft.items.len(), 0);
+    assert_eq!(sft.state.selected(), None);
+    // check default selection on set
+    sft.set_items(vec![String::from("test"), String::from("testw")]);
+    assert_eq!(sft.items.len(), 2);
+    assert_eq!(sft.state.selected(), Some(0));
+    // check selection retain on set
+    sft.state.select(Some(1));
+    sft.set_items(vec![
+      String::from("test"),
+      String::from("test2"),
+      String::from("test3"),
+    ]);
+    assert_eq!(sft.items.len(), 3);
+    assert_eq!(sft.state.selected(), Some(1));
+    // check selection overflow prevention
+    sft.state.select(Some(2));
+    sft.set_items(vec![String::from("test"), String::from("test")]);
+    assert_eq!(sft.items.len(), 2);
+    assert_eq!(sft.state.selected(), Some(1));
+    // check scroll down
+    sft.state.select(Some(0));
+    assert_eq!(sft.state.selected(), Some(0));
+    sft.scroll_down(1);
+    assert_eq!(sft.state.selected(), Some(1));
+    // check scroll overflow
+    sft.scroll_down(1);
+    assert_eq!(sft.state.selected(), Some(1));
+    sft.scroll_up(1);
+    assert_eq!(sft.state.selected(), Some(0));
+    // check scroll overflow
+    sft.scroll_up(1);
+    assert_eq!(sft.state.selected(), Some(0));
+    // check increment
+    sft.scroll_down(10);
+    assert_eq!(sft.state.selected(), Some(1));
+
+    let sft2 = StatefulTable::with_items(vec![String::from("test"), String::from("test")]);
+    assert_eq!(sft2.state.selected(), Some(0));
   }
 
-  //   #[test]
-  //   fn test_stateful_table() {
-  //     let mut sft: StatefulTable<KubeNs> = StatefulTable::new();
+  #[test]
+  fn test_handle_table_scroll() {
+    let mut item: StatefulTable<&str> = StatefulTable::new();
+    item.set_items(vec!["A", "B", "C"]);
 
-  //     assert_eq!(sft.items.len(), 0);
-  //     assert_eq!(sft.state.selected(), None);
-  //     // check default selection on set
-  //     sft.set_items(vec![KubeNs::default(), KubeNs::default()]);
-  //     assert_eq!(sft.items.len(), 2);
-  //     assert_eq!(sft.state.selected(), Some(0));
-  //     // check selection retain on set
-  //     sft.state.select(Some(1));
-  //     sft.set_items(vec![
-  //       KubeNs::default(),
-  //       KubeNs::default(),
-  //       KubeNs::default(),
-  //     ]);
-  //     assert_eq!(sft.items.len(), 3);
-  //     assert_eq!(sft.state.selected(), Some(1));
-  //     // check selection overflow prevention
-  //     sft.state.select(Some(2));
-  //     sft.set_items(vec![KubeNs::default(), KubeNs::default()]);
-  //     assert_eq!(sft.items.len(), 2);
-  //     assert_eq!(sft.state.selected(), Some(1));
-  //     // check scroll down
-  //     sft.state.select(Some(0));
-  //     assert_eq!(sft.state.selected(), Some(0));
-  //     sft.scroll_down(1);
-  //     assert_eq!(sft.state.selected(), Some(1));
-  //     // check scroll overflow
-  //     sft.scroll_down(1);
-  //     assert_eq!(sft.state.selected(), Some(1));
-  //     sft.scroll_up(1);
-  //     assert_eq!(sft.state.selected(), Some(0));
-  //     // check scroll overflow
-  //     sft.scroll_up(1);
-  //     assert_eq!(sft.state.selected(), Some(0));
-  //     // check increment
-  //     sft.scroll_down(10);
-  //     assert_eq!(sft.state.selected(), Some(1));
+    assert_eq!(item.state.selected(), Some(0));
 
-  //     let sft2 = StatefulTable::with_items(vec![KubeNs::default(), KubeNs::default()]);
-  //     assert_eq!(sft2.state.selected(), Some(0));
-  //   }
+    item.handle_scroll(false, false);
+    assert_eq!(item.state.selected(), Some(1));
 
-  //   #[test]
-  //   fn test_handle_table_scroll() {
-  //     let mut item: StatefulTable<&str> = StatefulTable::new();
-  //     item.set_items(vec!["A", "B", "C"]);
+    item.handle_scroll(false, false);
+    assert_eq!(item.state.selected(), Some(2));
 
-  //     assert_eq!(item.state.selected(), Some(0));
+    item.handle_scroll(false, false);
+    assert_eq!(item.state.selected(), Some(2));
+    // previous
+    item.handle_scroll(true, false);
+    assert_eq!(item.state.selected(), Some(1));
+    // page down
+    item.handle_scroll(false, true);
+    assert_eq!(item.state.selected(), Some(2));
+    // page up
+    item.handle_scroll(true, true);
+    assert_eq!(item.state.selected(), Some(0));
+  }
 
-  //     item.handle_scroll(false, false);
-  //     assert_eq!(item.state.selected(), Some(1));
+  #[test]
+  fn test_stateful_tab() {
+    let mut tab = TabsState::new(vec![
+      TabRoute {
+        title: "Hello".into(),
+        route: Route {
+          active_block: ActiveBlock::Help,
+          id: RouteId::Help,
+        },
+      },
+      TabRoute {
+        title: "Test".into(),
+        route: Route {
+          active_block: ActiveBlock::DecoderToken,
+          id: RouteId::Decoder,
+        },
+      },
+    ]);
 
-  //     item.handle_scroll(false, false);
-  //     assert_eq!(item.state.selected(), Some(2));
+    assert_eq!(tab.index, 0);
+    assert_eq!(tab.get_active_route().active_block, ActiveBlock::Help);
+    tab.next();
+    assert_eq!(tab.index, 1);
+    assert_eq!(
+      tab.get_active_route().active_block,
+      ActiveBlock::DecoderToken
+    );
+    tab.next();
+    assert_eq!(tab.index, 0);
+    assert_eq!(tab.get_active_route().active_block, ActiveBlock::Help);
+    tab.previous();
+    assert_eq!(tab.index, 1);
+    assert_eq!(
+      tab.get_active_route().active_block,
+      ActiveBlock::DecoderToken
+    );
+    tab.previous();
+    assert_eq!(tab.index, 0);
+    assert_eq!(tab.get_active_route().active_block, ActiveBlock::Help);
+  }
 
-  //     item.handle_scroll(false, false);
-  //     assert_eq!(item.state.selected(), Some(2));
-  //     // previous
-  //     item.handle_scroll(true, false);
-  //     assert_eq!(item.state.selected(), Some(1));
-  //     // page down
-  //     item.handle_scroll(false, true);
-  //     assert_eq!(item.state.selected(), Some(2));
-  //     // page up
-  //     item.handle_scroll(true, true);
-  //     assert_eq!(item.state.selected(), Some(0));
-  //   }
-
-  //   #[test]
-  //   fn test_stateful_tab() {
-  //     let mut tab = TabsState::new(vec![
-  //       TabRoute {
-  //         title: "Hello".into(),
-  //         route: Route {
-  //           active_block: ActiveBlock::Pods,
-  //           id: RouteId::Home,
-  //         },
-  //       },
-  //       TabRoute {
-  //         title: "Test".into(),
-  //         route: Route {
-  //           active_block: ActiveBlock::Nodes,
-  //           id: RouteId::Home,
-  //         },
-  //       },
-  //     ]);
-
-  //     assert_eq!(tab.index, 0);
-  //     assert_eq!(tab.get_active_route().active_block, ActiveBlock::Pods);
-  //     tab.next();
-  //     assert_eq!(tab.index, 1);
-  //     assert_eq!(tab.get_active_route().active_block, ActiveBlock::Nodes);
-  //     tab.next();
-  //     assert_eq!(tab.index, 0);
-  //     assert_eq!(tab.get_active_route().active_block, ActiveBlock::Pods);
-  //     tab.previous();
-  //     assert_eq!(tab.index, 1);
-  //     assert_eq!(tab.get_active_route().active_block, ActiveBlock::Nodes);
-  //     tab.previous();
-  //     assert_eq!(tab.index, 0);
-  //     assert_eq!(tab.get_active_route().active_block, ActiveBlock::Pods);
-  //   }
   #[test]
   fn test_scrollable_txt() {
     let mut stxt = ScrollableTxt::new("test\n multiline\n string".into());

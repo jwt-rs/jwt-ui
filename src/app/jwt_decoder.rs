@@ -1,16 +1,8 @@
-// adapted from https://github.com/mike-engel/jwt-cli
-use std::{
-  collections::{BTreeMap, HashSet},
-  fmt,
-};
+use std::collections::{BTreeMap, HashSet};
 
 use base64::{engine::general_purpose::STANDARD as base64_engine, Engine as _};
 use chrono::{TimeZone, Utc};
-use jsonwebtoken::{
-  decode,
-  errors::{Error, ErrorKind},
-  Algorithm, DecodingKey, Header, TokenData, Validation,
-};
+use jsonwebtoken::{decode, errors::Error, Algorithm, DecodingKey, Header, TokenData, Validation};
 use serde_derive::{Deserialize, Serialize};
 use serde_json::{to_string_pretty, Value};
 use tui_input::Input;
@@ -29,6 +21,8 @@ pub struct Decoder {
   pub secret: TextInput,
   pub signature_verified: bool,
   pub blocks: TabsState,
+  pub utc_dates: bool,
+  pub ignore_exp: bool,
   /// do not manipulate directly, use `set_decoded` instead
   pub _decoded: Option<TokenData<Payload>>,
 }
@@ -43,7 +37,9 @@ impl Default for Decoder {
       header: Default::default(),
       payload: Default::default(),
       secret: Default::default(),
-      signature_verified: Default::default(),
+      signature_verified: false,
+      utc_dates: false,
+      ignore_exp: true,
       blocks: TabsState::new(vec![
         TabRoute {
           title: "".into(),
@@ -70,7 +66,7 @@ impl Default for Decoder {
           title: "".into(),
           route: Route {
             id: RouteId::Decoder,
-            active_block: ActiveBlock::DecoderSignature,
+            active_block: ActiveBlock::DecoderSecret,
           },
         },
       ]),
@@ -101,29 +97,6 @@ impl Decoder {
   }
 }
 
-#[derive(Debug, Clone)]
-pub struct DecodeArgs {
-  /// The JWT to decode.
-  pub jwt: String,
-  /// Display unix timestamps as ISO 8601 UTC dates
-  pub time_format_utc: bool,
-  /// The secret to validate the JWT with. Prefix with @ to read from a file or b64: to use base-64 encoded bytes
-  pub secret: String,
-  /// Ignore token expiration date (`exp` claim) during validation
-  pub ignore_exp: bool,
-}
-
-impl DecodeArgs {
-  pub fn new(jwt: String, secret: String) -> Self {
-    DecodeArgs {
-      jwt,
-      secret,
-      time_format_utc: false,
-      ignore_exp: true,
-    }
-  }
-}
-
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct Payload(pub BTreeMap<String, Value>);
 
@@ -143,7 +116,7 @@ impl Payload {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub struct TokenOutput {
+struct TokenOutput {
   pub header: Header,
   pub payload: Payload,
 }
@@ -157,9 +130,29 @@ impl TokenOutput {
   }
 }
 
-pub fn decode_jwt_token(app: &mut App, token: String, secret: String) {
+#[derive(Debug, Clone)]
+struct DecodeArgs {
+  /// The JWT to decode.
+  pub jwt: String,
+  /// Display unix timestamps as ISO 8601 UTC dates
+  pub time_format_utc: bool,
+  /// The secret to validate the JWT with. Prefix with @ to read from a file or b64: to use base-64 encoded bytes
+  pub secret: String,
+  /// Ignore token expiration date (`exp` claim) during validation
+  pub ignore_exp: bool,
+}
+
+/// decode the given JWT token and verify its signature if secret is provided
+pub fn decode_jwt_token(app: &mut App) {
+  let token = app.data.decoder.encoded.input.value();
+  let secret = app.data.decoder.secret.input.value();
   if !token.is_empty() {
-    let out = decode_token(&DecodeArgs::new(token, secret));
+    let out = decode_token(&DecodeArgs {
+      jwt: token.into(),
+      secret: secret.into(),
+      time_format_utc: app.data.decoder.utc_dates,
+      ignore_exp: app.data.decoder.ignore_exp,
+    });
     match out {
       (Ok(decoded), Ok(_)) => {
         app.data.error = String::new();
@@ -220,7 +213,7 @@ fn decode_token(
   });
 
   let algorithm = match decode_only.as_ref() {
-    Ok(data) => data.header.alg.clone(),
+    Ok(data) => data.header.alg,
     Err(_) => Algorithm::HS256,
   };
 
