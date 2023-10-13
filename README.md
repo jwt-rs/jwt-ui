@@ -1,16 +1,14 @@
 # JWT CLI - A command line UI for decoding/encoding JSON Web Tokens
 
-![ci](https://github.com/jwt-rs/kdash/actions/workflows/ci.yml/badge.svg)
-![cd](https://github.com/jwt-rs/kdash/actions/workflows/cd.yml/badge.svg)
+![ci](https://github.com/jwt-rs/jwt-tui/actions/workflows/ci.yml/badge.svg)
+![cd](https://github.com/jwt-rs/jwt-tui/actions/workflows/cd.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-blueviolet.svg)
-![LOC](https://tokei.rs/b1/github/jwt-rs/kdash?category=code)
-[![crates.io link](https://img.shields.io/crates/v/kdash.svg)](https://crates.io/crates/kdash)
-![Docker Release](https://img.shields.io/docker/v/deepu105/kdash?label=Docker%20version)
-![Release](https://img.shields.io/github/v/release/jwt-rs/kdash?color=%23c694ff)
-[![Coverage](https://coveralls.io/repos/github/jwt-rs/kdash/badge.svg?branch=main)](https://coveralls.io/github/jwt-rs/kdash?branch=main)
-[![GitHub Downloads](https://img.shields.io/github/downloads/jwt-rs/kdash/total.svg?label=GitHub%20downloads)](https://github.com/jwt-rs/kdash/releases)
-![Docker pulls](https://img.shields.io/docker/pulls/deepu105/kdash?label=Docker%20downloads)
-![Crate.io downloads](https://img.shields.io/crates/d/kdash?label=Crate%20downloads)
+![LOC](https://tokei.rs/b1/github/jwt-rs/jwt-tui?category=code)
+[![crates.io link](https://img.shields.io/crates/v/jwt-tui.svg)](https://crates.io/crates/jwt-tui)
+![Release](https://img.shields.io/github/v/release/jwt-rs/jwt-tui?color=%23c694ff)
+[![Coverage](https://coveralls.io/repos/github/jwt-rs/jwt-tui/badge.svg?branch=main)](https://coveralls.io/github/jwt-rs/jwt-tui?branch=main)
+[![GitHub Downloads](https://img.shields.io/github/downloads/jwt-rs/jwt-tui/total.svg?label=GitHub%20downloads)](https://github.com/jwt-rs/jwt-tui/releases)
+![Crate.io downloads](https://img.shields.io/crates/d/jwt-tui?label=Crate%20downloads)
 
 [![Follow Deepu K Sasidharan (deepu105)](https://img.shields.io/twitter/follow/deepu105?label=Follow%20Deepu%20K%20Sasidharan%20%28deepu105%29&style=social)](https://twitter.com/intent/follow?screen_name=deepu105)
 

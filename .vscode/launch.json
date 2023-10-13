@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Windows - Debug executable 'kdash'",
+            "name": "Windows - Debug executable 'jwt-tui'",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}\\target\\debug\\kdash.exe",
+            "program": "${workspaceFolder}\\target\\debug\\jwt-tui.exe",
             "args": [],
             "sourceLanguages": [ "rust" ],
             "cwd": "${workspaceFolder}"
@@ -16,15 +16,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'kdash'",
+            "name": "Debug executable 'jwt-tui'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=kdash",
-                    "--package=kdash"
+                    "--bin=jwtui",
+                    "--package=jwt-tui"
                 ],
                 "filter": {
-                    "name": "kdash",
+                    "name": "jwt-tui",
                     "kind": "bin"
                 }
             },
@@ -34,16 +34,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'kdash'",
+            "name": "Debug unit tests in executable 'jwt-tui'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=kdash",
-                    "--package=kdash"
+                    "--bin=jwt-tui",
+                    "--package=jwt-tui"
                 ],
                 "filter": {
-                    "name": "kdash",
+                    "name": "jwt-tui",
                     "kind": "bin"
                 }
             },

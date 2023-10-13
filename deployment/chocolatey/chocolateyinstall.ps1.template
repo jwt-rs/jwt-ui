@@ -1,8 +1,8 @@
 $ErrorActionPreference = 'Stop';
 
-$PackageName = 'kdash'
+$PackageName = 'jwt-tui'
 $toolsDir    = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
-$url64       = 'https://github.com/kdash-rs/kdash/releases/download/v$version/kdash-windows.tar.gz'
+$url64       = 'https://github.com/jwt-rs/jwt-tui/releases/download/v$version/jwt-tui-windows.tar.gz'
 $checksum64  = '$hash_64'
 
 $packageArgs = @{

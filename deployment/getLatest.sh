@@ -2,14 +2,14 @@
 
 # The install script is licensed under the CC-0 1.0 license.
 
-# See https://github.com/kdash-rs/kdash/blob/main/LICENSE for more details.
+# See https://github.com/jwt-rs/jwt-tui/blob/main/LICENSE for more details.
 #
 # To run this script execute:
-#   `curl https://raw.githubusercontent.com/kdash-rs/kdash/main/deployment/getLatest.sh | sh`
+#   `curl https://raw.githubusercontent.com/jwt-rs/jwt-tui/main/deployment/getLatest.sh | sh`
 
-GITHUB_REPO="kdash"
-GITHUB_USER="kdash-rs"
-EXE_FILENAME="kdash"
+GITHUB_REPO="jwt-tui"
+GITHUB_USER="jwt-rs"
+EXE_FILENAME="jwt-tui"
 EXE_DEST_DIR="/usr/local/bin"
 
 bye() {

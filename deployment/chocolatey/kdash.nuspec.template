@@ -19,31 +19,31 @@ This is a nuspec. It mostly adheres to https://docs.nuget.org/create/Nuspec-Refe
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <!-- == PACKAGE SPECIFIC SECTION == -->
-    <id>kdash</id>
+    <id>jwt-tui</id>
     <version>$version</version>
 
     <!-- == SOFTWARE SPECIFIC SECTION == -->
     <!-- This section is about the software itself -->
     <title>KDash</title>
     <authors>Deepu K Sasidharan</authors>
-    <projectUrl>https://github.com/kdash-rs/kdash</projectUrl>
-    <licenseUrl>https://github.com/kdash-rs/kdash/blob/main/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/jwt-rs/jwt-tui</projectUrl>
+    <licenseUrl>https://github.com/jwt-rs/jwt-tui/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <projectSourceUrl>https://github.com/kdash-rs/kdash</projectSourceUrl>
-    <docsUrl>https://github.com/kdash-rs/kdash/blob/main/README.md</docsUrl>
-    <bugTrackerUrl>https://github.com/kdash-rs/kdash/issues</bugTrackerUrl>
-    <tags>cli cross-platform terminal k8s tui monitoring kdash kubernetes rust</tags>
+    <projectSourceUrl>https://github.com/jwt-rs/jwt-tui</projectSourceUrl>
+    <docsUrl>https://github.com/jwt-rs/jwt-tui/blob/main/README.md</docsUrl>
+    <bugTrackerUrl>https://github.com/jwt-rs/jwt-tui/issues</bugTrackerUrl>
+    <tags>cli cross-platform terminal k8s tui monitoring jwt-tui kubernetes rust</tags>
     <summary>A fast and simple dashboard for Kubernetes written in Rust.</summary>
     <description>
     A fast and simple dashboard for Kubernetes written in Rust.
 
     **Usage**
-    To use, run `kdash` in a terminal.
+    To use, run `jwtui` in a terminal.
     
-    For more [documentation and usage](https://github.com/kdash-rs/kdash/blob/main/README.md), see the [official repo](https://github.com/kdash-rs/kdash).
+    For more [documentation and usage](https://github.com/jwt-rs/jwt-tui/blob/main/README.md), see the [official repo](https://github.com/jwt-rs/jwt-tui).
     
     </description>
-    <releaseNotes>https://github.com/kdash-rs/kdash/releases/tag/v$version/</releaseNotes>
+    <releaseNotes>https://github.com/jwt-rs/jwt-tui/releases/tag/v$version/</releaseNotes>
   </metadata>
   <files>
     <!-- this section controls what actually gets packaged into the Chocolatey package -->
