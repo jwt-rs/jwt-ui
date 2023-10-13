@@ -40,7 +40,7 @@ clap = { version = "4.3.24", features = [
     "error-context",
     "derive",
 ] }
-tokio = { version = "1.32", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.33", features = ["macros", "rt-multi-thread"] }
 tokio-stream = { version = "0.1.14", features = ["time"] }
 tui-input = "0.8"
 duct = "0.13"
