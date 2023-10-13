@@ -133,7 +133,7 @@ async fn start_ui(cli: Cli, app: &Arc<Mutex<App>>) -> Result<()> {
       event::Event::MouseInput(mouse) => handlers::handle_mouse_events(mouse, &mut app),
       // handle tick events
       event::Event::Tick => {
-        app.on_tick().await;
+        app.on_tick();
       }
     }
 

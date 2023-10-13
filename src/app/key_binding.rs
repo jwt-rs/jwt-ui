@@ -29,7 +29,6 @@ generate_keybindings! {
   cycle_main_views,
   jump_to_decoder,
   jump_to_encoder,
-  jump_to_intro,
   copy_to_clipboard,
   pg_up,
   pg_down,
@@ -59,7 +58,6 @@ pub enum HContext {
   Editable,
   Decoder,
   Encoder,
-  Introduction,
 }
 
 impl fmt::Display for HContext {
@@ -123,12 +121,6 @@ pub const DEFAULT_KEYBINDING: KeyBindings = KeyBindings {
     key: Key::Char('E'),
     alt: None,
     desc: "Switch to encoder view",
-    context: HContext::General,
-  },
-  jump_to_intro: KeyBinding {
-    key: Key::Char('I'),
-    alt: None,
-    desc: "Switch to JWT introduction view",
     context: HContext::General,
   },
   cycle_main_views: KeyBinding {

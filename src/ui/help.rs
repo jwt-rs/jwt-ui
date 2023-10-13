@@ -81,16 +81,16 @@ mod tests {
         "┌ Help | close <esc> ──────────────────────────────────────────────────────────────────────────────┐",
         "│   Key                                               Action                                  Conte│",
         "│=> <Ctrl+c> | <q>                                    Quit                                    Gener│",
-        "│   <Esc>                                             Close child page/Go back                Gener│",
+        "│   <Esc>                                             Close child page/Go back/Stop editing   Gener│",
         "│   <?>                                               Help page                               Gener│",
-        "│   <Enter>                                           Select table row                        Gener│",
+        "│   <Ctrl+r>                                          Refresh UI                              Gener│",
         "└──────────────────────────────────────────────────────────────────────────────────────────────────┘",
       ]);
     // set row styles
     // First row heading style
     for col in 0..=99 {
       match col {
-        0 | 21..=99 => {
+        0 | 7..=99 => {
           expected
             .get_mut(col, 0)
             .set_style(Style::default().fg(COLOR_YELLOW));

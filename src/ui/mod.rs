@@ -1,7 +1,6 @@
 mod decoder;
 mod encoder;
 mod help;
-mod intro;
 pub mod utils;
 
 use ratatui::{
@@ -16,7 +15,6 @@ use self::{
   decoder::draw_decoder,
   encoder::draw_encoder,
   help::draw_help,
-  intro::draw_intro,
   utils::{
     horizontal_chunks_with_margin, layout_block, style_default, style_failure, style_help,
     style_logo, style_main_background, style_primary, style_secondary, title_style_logo,
@@ -63,9 +61,6 @@ pub fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
   match app.get_current_route().id {
     RouteId::Help => {
       draw_help(f, app, main_chunk);
-    }
-    RouteId::Intro => {
-      draw_intro(f, app, main_chunk);
     }
     RouteId::Decoder => {
       draw_decoder(f, app, main_chunk);
@@ -115,7 +110,6 @@ fn draw_header_text<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
     RouteId::Encoder => vec![Line::from(
       "<?> help | <tab> switch tabs | <←→> select block | <↑↓> scroll ",
     )],
-    RouteId::Intro => vec![Line::from("<?> help | <tab> switch tabs | <↑↓> scroll ")],
     RouteId::Help => vec![],
   };
   let paragraph = Paragraph::new(text)

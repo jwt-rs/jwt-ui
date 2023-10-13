@@ -1,9 +1,4 @@
-use ratatui::{
-  backend::Backend,
-  layout::Rect,
-  widgets::{ListState, TableState},
-  Frame,
-};
+use ratatui::{backend::Backend, layout::Rect, widgets::TableState, Frame};
 
 use super::{ActiveBlock, App, Route};
 
@@ -23,58 +18,6 @@ pub trait Scrollable {
   }
   fn scroll_down(&mut self, inc_or_dec: usize);
   fn scroll_up(&mut self, inc_or_dec: usize);
-}
-
-pub struct StatefulList<T> {
-  pub state: ListState,
-  pub items: Vec<T>,
-}
-
-impl<T> StatefulList<T> {
-  pub fn new() -> StatefulList<T> {
-    StatefulList {
-      state: ListState::default(),
-      items: Vec::new(),
-    }
-  }
-  pub fn with_items(items: Vec<T>) -> StatefulList<T> {
-    let mut state = ListState::default();
-    if !items.is_empty() {
-      state.select(Some(0));
-    }
-    StatefulList { state, items }
-  }
-}
-
-impl<T> Scrollable for StatefulList<T> {
-  // for lists we cycle back to the beginning when we reach the end
-  fn scroll_down(&mut self, increment: usize) {
-    let i = match self.state.selected() {
-      Some(i) => {
-        if i >= self.items.len().saturating_sub(increment) {
-          0
-        } else {
-          i + increment
-        }
-      }
-      None => 0,
-    };
-    self.state.select(Some(i));
-  }
-  // for lists we cycle back to the end when we reach the beginning
-  fn scroll_up(&mut self, decrement: usize) {
-    let i = match self.state.selected() {
-      Some(i) => {
-        if i == 0 {
-          self.items.len().saturating_sub(decrement)
-        } else {
-          i.saturating_sub(decrement)
-        }
-      }
-      None => 0,
-    };
-    self.state.select(Some(i));
-  }
 }
 
 #[derive(Clone, Debug)]

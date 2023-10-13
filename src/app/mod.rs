@@ -27,7 +27,6 @@ pub enum ActiveBlock {
   EncoderHeader,
   EncoderPayload,
   EncoderSecret,
-  Intro,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -35,7 +34,6 @@ pub enum RouteId {
   Help,
   Decoder,
   Encoder,
-  Intro,
 }
 
 #[derive(Debug, Clone)]
@@ -104,17 +102,10 @@ impl Default for App {
           },
         },
         TabRoute {
-          title: format!("Encoder {}", DEFAULT_KEYBINDING.jump_to_decoder.key),
+          title: format!("Encoder {}", DEFAULT_KEYBINDING.jump_to_encoder.key),
           route: Route {
             id: RouteId::Encoder,
             active_block: ActiveBlock::EncoderHeader,
-          },
-        },
-        TabRoute {
-          title: format!("JWT Introduction {}", DEFAULT_KEYBINDING.jump_to_intro.key),
-          route: Route {
-            id: RouteId::Intro,
-            active_block: ActiveBlock::Intro,
           },
         },
       ]),
@@ -197,7 +188,7 @@ impl App {
     self.push_navigation_route(route);
   }
 
-  pub async fn on_tick(&mut self) {
+  pub fn on_tick(&mut self) {
     decode_jwt_token(self);
   }
 }
@@ -209,14 +200,11 @@ mod tests {
 
   #[tokio::test]
   async fn test_on_tick_first_render() {
-    let mut app = App {
-      tick_rate: 250,
-      ..App::default()
-    };
+    let mut app = App::default();
 
     app.data.decoder.encoded.input = Input::new("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.he0ErCNloe4J7Id0Ry2SEDg09lKkZkfsRiGsdX_vgEg".to_string());
     // test first render
-    app.on_tick().await;
+    app.on_tick();
 
     assert!(!app.is_routing);
     assert!(app.data.error.is_empty());
