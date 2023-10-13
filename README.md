@@ -1,4 +1,4 @@
-# JWT CLI - A command line UI for decoding/encoding JSON Web Tokens
+# JWT TUI - A Terminal UI for decoding/encoding JSON Web Tokens
 
 ![ci](https://github.com/jwt-rs/jwt-tui/actions/workflows/ci.yml/badge.svg)
 ![cd](https://github.com/jwt-rs/jwt-tui/actions/workflows/cd.yml/badge.svg)
@@ -14,7 +14,7 @@
 
 <!--![logo](artwork/logo.png)-->
 
-A command line UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](https://jwt.io/) and [jwt-cli](https://github.com/mike-engel/jwt-cli)
+A terminal UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](https://jwt.io/) and [jwt-cli](https://github.com/mike-engel/jwt-cli)
 
 <!-- ![UI](screenshots/ui.gif) -->
 
@@ -23,25 +23,25 @@ A command line UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](htt
 ### Homebrew (Mac & Linux)
 
 ```bash
-brew tap jwt-rs/jwt-cli
-brew install jwt-cli
+brew tap jwt-rs/jwt-tui
+brew install jwt-tui
 
 # If you need to be more specific, use:
-brew install jwt-rs/jwt-cli/jwt-cli
+brew install jwt-rs/jwt-cli/jwt-tui
 ```
 
 To upgrade
 
 ```bash
-brew upgrade jwt-cli
+brew upgrade jwt-tui
 ```
 
 ### Scoop (Windows)
 
 ```bash
-scoop bucket add jwt-cli-bucket https://github.com/jwt-rs/scoop-jwt-cli
+scoop bucket add jwt-tui-bucket https://github.com/jwt-rs/scoop-jwt-tui
 
-scoop install jwt-cli
+scoop install jwt-tui
 ```
 
 ### Install script
@@ -54,22 +54,22 @@ curl https://raw.githubusercontent.com/jwt-rs/jwt-cli/main/deployment/getLatest.
 
 ### Manual
 
-Binaries for macOS, Linux and Windows are available on the [releases](https://github.com/jwt-rs/jwt-cli/releases) page
+Binaries for macOS, Linux and Windows are available on the [releases](https://github.com/jwt-rs/jwt-tui/releases) page
 
-1. Download the latest [binary](https://github.com/jwt-rs/jwt-cli/releases) for your OS.
+1. Download the latest [binary](https://github.com/jwt-rs/jwt-tui/releases) for your OS.
 1. For Linux/macOS:
    1. `cd` to the file you just downloaded and run `tar -C /usr/local/bin -xzf downloaded-file-name`. Use sudo if required.
-   2. Run with `jwtd`
+   2. Run with `jwtui`
 1. For Windows:
    1. Use 7-Zip or TarTool to unpack the tar file.
-   2. Run the executable file `jwtd.exe`
+   2. Run the executable file `jwtui.exe`
 
 ### Cargo
 
 If you have Cargo installed then you install jwt-tui from crates.io
 
 ```bash
-cargo install jwt-cli
+cargo install jwt-tui
 ```
 
 > Note: On Debian/Ubuntu you might need to install `libxcb-xfixes0-dev` and `libxcb-shape0-dev`. On Fedora `libxcb` and `libxcb-devel` would be needed.
@@ -83,11 +83,11 @@ You can also clone the repo and run `cargo run` or `make` to build and run the a
 ## USAGE:
 
 ```bash
-jwtd
+jwtui
 
 #or
 
-jwtd <jwt-token>
+jwtui <jwt-token>
 ```
 
 Press `?` while running the app to see keybindings
@@ -97,7 +97,7 @@ Press `?` while running the app to see keybindings
 - `-h, --help`: Prints help information
 - `-V, --version`: Prints version information
 - `-t, --tick-rate <tick-rate>`: Set the tick rate (milliseconds): the lower the number the higher the FPS.
-- `-r, --raw`: Raw mode. Disables TUI and prints output to stdout.
+- `-s, --stdout`: Raw mode. Disables TUI and prints output to stdout.
 
 ## Limitations/Known issues
 
