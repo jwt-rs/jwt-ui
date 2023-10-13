@@ -66,7 +66,7 @@ Binaries for macOS, Linux and Windows are available on the [releases](https://gi
 
 ### Cargo
 
-If you have Cargo installed then you install KDash from crates.io
+If you have Cargo installed then you install jwt-tui from crates.io
 
 ```bash
 cargo install jwt-cli

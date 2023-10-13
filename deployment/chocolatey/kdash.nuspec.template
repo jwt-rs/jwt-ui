@@ -24,7 +24,7 @@ This is a nuspec. It mostly adheres to https://docs.nuget.org/create/Nuspec-Refe
 
     <!-- == SOFTWARE SPECIFIC SECTION == -->
     <!-- This section is about the software itself -->
-    <title>KDash</title>
+    <title>jwt-tui</title>
     <authors>Deepu K Sasidharan</authors>
     <projectUrl>https://github.com/jwt-rs/jwt-tui</projectUrl>
     <licenseUrl>https://github.com/jwt-rs/jwt-tui/blob/main/LICENSE</licenseUrl>

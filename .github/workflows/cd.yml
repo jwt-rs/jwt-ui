@@ -217,7 +217,7 @@ jobs:
           cp jwt-tui.rb brew/Formula
           cd brew
           git add .
-          git diff-index --quiet HEAD || git commit -am "Update formula for KDash release ${{ env.RELEASE_VERSION }}"
+          git diff-index --quiet HEAD || git commit -am "Update formula for jwt-tui release ${{ env.RELEASE_VERSION }}"
           git push origin main
 
       - name: Execute chocolatey packaging script
@@ -236,7 +236,7 @@ jobs:
           cp chocolateyinstall.ps1 choco/tools/chocolateyinstall.ps1
           cd choco
           git add .
-          git diff-index --quiet HEAD || git commit -am "Update package for KDash release ${{ env.RELEASE_VERSION }}"
+          git diff-index --quiet HEAD || git commit -am "Update package for jwt-tui release ${{ env.RELEASE_VERSION }}"
           git push origin main
 
       - name: Execute Scoop packaging script
@@ -252,7 +252,7 @@ jobs:
           cp jwt-tui.json scoop/jwt-tui.json
           cd scoop
           git add .
-          git diff-index --quiet HEAD || git commit -am "Update package for KDash release ${{ env.RELEASE_VERSION }}"
+          git diff-index --quiet HEAD || git commit -am "Update package for jwt-tui release ${{ env.RELEASE_VERSION }}"
           git push origin main
 
   publish-cargo:

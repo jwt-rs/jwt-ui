@@ -1,7 +1,7 @@
 
 # Documentation: https://docs.brew.sh/Formula-Cookbook
 #                https://rubydoc.brew.sh/Formula
-class Kdash < Formula
+class jwt-tui < Formula
   desc "A fast and simple dashboard for Kubernetes written in Rust"
   homepage "https://github.com/jwt-rs/jwt-tui"
   if OS.mac?

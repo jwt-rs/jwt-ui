@@ -29,7 +29,7 @@ If applicable, add screenshots to help explain your problem.
  - Shell name and version [e.g. bash, zsh, fish, powershell]
  - Kubectl Client Version [e.g. 1.19]
  - Kubectl Server Version [e.g. 1.19]
- - KDash version [e.g. 0.0.8]
+ - jwt-tui version [e.g. 0.0.8]
 
 **Additional context**
 Add any other context about the problem here.
