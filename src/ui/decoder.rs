@@ -1,17 +1,16 @@
 use ratatui::{
   backend::Backend,
   layout::{Constraint, Rect},
-  style::Style,
   text::Text,
-  widgets::{Block, Borders, Paragraph, Wrap},
+  widgets::{Block, Paragraph, Wrap},
   Frame,
 };
 
 use super::utils::{
-  horizontal_chunks, layout_block_with_line, style_default, style_primary, style_secondary,
-  title_with_dual_style, vertical_chunks, vertical_chunks_with_margin,
+  get_selectable_block, horizontal_chunks, render_input_widget, style_default, style_primary,
+  vertical_chunks, vertical_chunks_with_margin,
 };
-use crate::app::{ActiveBlock, App, InputMode, Route, TextInput};
+use crate::app::{ActiveBlock, App};
 
 pub fn draw_decoder<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let chunks = horizontal_chunks(
@@ -49,7 +48,7 @@ fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 
   draw_header_block(f, app, chunks[0]);
   draw_payload_block(f, app, chunks[1]);
-  draw_signature_block(f, app, chunks[2]);
+  draw_secret_block(f, app, chunks[2]);
 }
 
 fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
@@ -99,7 +98,7 @@ fn draw_payload_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   f.render_widget(paragraph, chunks[0]);
 }
 
-fn draw_signature_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_secret_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let block = get_selectable_block(
     "Verify Signature",
     app.data.decoder.blocks.get_active_route(),
@@ -124,99 +123,18 @@ fn draw_signature_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect)
   render_input_widget(f, chunks[1], &app.data.decoder.secret, app.light_theme);
 }
 
-fn render_input_widget<B: Backend>(
-  f: &mut Frame<'_, B>,
-  chunk: Rect,
-  text_input: &TextInput,
-  light_theme: bool,
-) {
-  let width = chunk.width.max(3) - 3;
-  // keep 2 for borders and 1 for cursor
-  let scroll = text_input.input.visual_scroll(width as usize);
-  let input = Paragraph::new(text_input.input.value())
-    .wrap(Wrap { trim: false })
-    .style(get_input_style(&text_input.input_mode, light_theme))
-    .scroll((0, scroll as u16))
-    .block(
-      Block::default()
-        .borders(Borders::ALL)
-        .style(get_input_style(&text_input.input_mode, light_theme)),
-    );
-
-  f.render_widget(input, chunk);
-
-  match text_input.input_mode {
-    InputMode::Normal => {
-      // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
-    }
-
-    InputMode::Editing => {
-      // Make the cursor visible and ask tui-rs to put it at the specified coordinates after rendering
-      f.set_cursor(
-        // Put cursor past the end of the input text
-        chunk.x + ((text_input.input.visual_cursor()).max(scroll) - scroll) as u16 + 1,
-        // Move one line down, from the border to the input line
-        chunk.y + 1,
-      )
-    }
-  }
-}
-
-// Utility methods
-fn get_hint(input_mode: &InputMode, is_active: bool) -> &str {
-  if is_active {
-    match input_mode {
-      InputMode::Normal => "(Press <e> to edit | <c> to copy) ",
-      InputMode::Editing => "(Press <esc> to stop editing | <c> to copy) ",
-    }
-  } else {
-    ""
-  }
-}
-
-fn get_selectable_block(
-  title: &str,
-  route: &Route,
-  block: ActiveBlock,
-  input_mode: Option<&InputMode>,
-  light_theme: bool,
-) -> Block<'static> {
-  let is_active = route.active_block == block;
-  let title_hint = if let Some(im) = input_mode {
-    get_hint(im, is_active)
-  } else if is_active {
-    "(Press <c> to copy) "
-  } else {
-    ""
-  };
-
-  let block = layout_block_with_line(
-    title_with_dual_style(format!(" {} ", title), title_hint.into()),
-    light_theme,
-    is_active,
-  );
-  block
-}
-
-fn get_input_style(input_mode: &InputMode, light: bool) -> Style {
-  match input_mode {
-    InputMode::Normal => style_default(light),
-    InputMode::Editing => style_secondary(light),
-  }
-}
-
 #[cfg(test)]
 mod tests {
   use crate::ui::utils::{COLOR_CYAN, COLOR_WHITE, COLOR_YELLOW};
 
   use super::*;
-  use ratatui::{backend::TestBackend, prelude::Buffer, style::Modifier, Terminal};
-  use tui_input::Input;
+  use ratatui::{
+    backend::TestBackend,
+    prelude::Buffer,
+    style::{Modifier, Style},
+    Terminal,
+  };
 
-  use std::io::stdout;
-
-  // 249, 229, 113 -> yellow
-  // 0, 230, 230 -> cyan
   #[test]
   fn test_draw_decoder() {
     let mut app = App::new(
@@ -232,7 +150,7 @@ mod tests {
 
     terminal
       .draw(|f| {
-        draw_decoder(f, &mut app, f.size());
+        draw_decoder(f, &app, f.size());
       })
       .unwrap();
 

@@ -57,7 +57,7 @@ pub enum HContext {
   General,
   Editable,
   Decoder,
-  Encoder,
+  //   Encoder,
 }
 
 impl fmt::Display for HContext {

@@ -2,10 +2,14 @@ use std::{collections::BTreeMap, rc::Rc};
 
 use ratatui::{
   layout::{Constraint, Direction, Layout, Rect},
+  prelude::Backend,
   style::{Color, Modifier, Style},
   text::{Line, Span},
-  widgets::{Block, Borders},
+  widgets::{Block, Borders, Paragraph, Wrap},
+  Frame,
 };
+
+use crate::app::{ActiveBlock, InputMode, Route, TextInput};
 
 // Utils
 
@@ -73,10 +77,6 @@ pub fn theme_styles(light: bool) -> BTreeMap<Styles, Style> {
   }
 }
 
-pub fn title_style(txt: &str) -> Line<'_> {
-  Line::from(vec![Span::styled(txt, style_bold())])
-}
-
 pub fn title_style_logo(txt: &str, light: bool) -> Span<'_> {
   Span::styled(
     txt,
@@ -84,10 +84,6 @@ pub fn title_style_logo(txt: &str, light: bool) -> Span<'_> {
       .add_modifier(Modifier::BOLD)
       .add_modifier(Modifier::ITALIC),
   )
-}
-
-pub fn style_bold() -> Style {
-  Style::default().add_modifier(Modifier::BOLD)
 }
 
 pub fn style_default(light: bool) -> Style {
@@ -99,12 +95,12 @@ pub fn style_logo(light: bool) -> Style {
 pub fn style_failure(light: bool) -> Style {
   *theme_styles(light).get(&Styles::Failure).unwrap()
 }
-pub fn style_warning(light: bool) -> Style {
-  *theme_styles(light).get(&Styles::Warning).unwrap()
-}
-pub fn style_success(light: bool) -> Style {
-  *theme_styles(light).get(&Styles::Success).unwrap()
-}
+// pub fn style_warning(light: bool) -> Style {
+//   *theme_styles(light).get(&Styles::Warning).unwrap()
+// }
+// pub fn style_success(light: bool) -> Style {
+//   *theme_styles(light).get(&Styles::Success).unwrap()
+// }
 pub fn style_primary(light: bool) -> Style {
   *theme_styles(light).get(&Styles::Primary).unwrap()
 }
@@ -174,10 +170,6 @@ pub fn layout_block(title: Span<'_>) -> Block<'_> {
   Block::default().borders(Borders::ALL).title(title)
 }
 
-pub fn layout_block_with_str(title: &str, light: bool, is_active: bool) -> Block<'_> {
-  layout_block_with_line(title_style(title), light, is_active)
-}
-
 pub fn layout_block_with_line(title: Line<'_>, light: bool, is_active: bool) -> Block<'_> {
   let style = if is_active {
     style_secondary(light)
@@ -196,4 +188,84 @@ pub fn title_with_dual_style<'a>(part_1: String, part_2: String) -> Line<'a> {
     Span::styled(part_1, Style::default().add_modifier(Modifier::BOLD)),
     Span::styled(part_2, Style::default()),
   ])
+}
+
+pub fn render_input_widget<B: Backend>(
+  f: &mut Frame<'_, B>,
+  chunk: Rect,
+  text_input: &TextInput,
+  light_theme: bool,
+) {
+  let width = chunk.width.max(3) - 3;
+  // keep 2 for borders and 1 for cursor
+  let scroll = text_input.input.visual_scroll(width as usize);
+  let input = Paragraph::new(text_input.input.value())
+    .wrap(Wrap { trim: false })
+    .style(get_input_style(&text_input.input_mode, light_theme))
+    .scroll((0, scroll as u16))
+    .block(
+      Block::default()
+        .borders(Borders::ALL)
+        .style(get_input_style(&text_input.input_mode, light_theme)),
+    );
+
+  f.render_widget(input, chunk);
+
+  match text_input.input_mode {
+    InputMode::Normal => {
+      // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
+    }
+
+    InputMode::Editing => {
+      // Make the cursor visible and ask tui-rs to put it at the specified coordinates after rendering
+      f.set_cursor(
+        // Put cursor past the end of the input text
+        chunk.x + ((text_input.input.visual_cursor()).max(scroll) - scroll) as u16 + 1,
+        // Move one line down, from the border to the input line
+        chunk.y + 1,
+      )
+    }
+  }
+}
+
+pub fn get_hint(input_mode: &InputMode, is_active: bool) -> &str {
+  if is_active {
+    match input_mode {
+      InputMode::Normal => "(Press <e> to edit | <c> to copy) ",
+      InputMode::Editing => "(Press <esc> to stop editing | <c> to copy) ",
+    }
+  } else {
+    ""
+  }
+}
+
+pub fn get_input_style(input_mode: &InputMode, light: bool) -> Style {
+  match input_mode {
+    InputMode::Normal => style_default(light),
+    InputMode::Editing => style_secondary(light),
+  }
+}
+
+pub fn get_selectable_block(
+  title: &str,
+  route: &Route,
+  block: ActiveBlock,
+  input_mode: Option<&InputMode>,
+  light_theme: bool,
+) -> Block<'static> {
+  let is_active = route.active_block == block;
+  let title_hint = if let Some(im) = input_mode {
+    get_hint(im, is_active)
+  } else if is_active {
+    "(Press <c> to copy) "
+  } else {
+    ""
+  };
+
+  let block = layout_block_with_line(
+    title_with_dual_style(format!(" {} ", title), title_hint.into()),
+    light_theme,
+    is_active,
+  );
+  block
 }
