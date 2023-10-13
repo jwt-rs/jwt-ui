@@ -12,11 +12,11 @@
 
 [![Follow Deepu K Sasidharan (deepu105)](https://img.shields.io/twitter/follow/deepu105?label=Follow%20Deepu%20K%20Sasidharan%20%28deepu105%29&style=social)](https://twitter.com/intent/follow?screen_name=deepu105)
 
-![logo](artwork/logo.png)
+<!--![logo](artwork/logo.png)-->
 
 A command line UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](https://jwt.io/) and [jwt-cli](https://github.com/mike-engel/jwt-cli)
 
-![UI](screenshots/ui.gif)
+<!-- ![UI](screenshots/ui.gif) -->
 
 ## Installation
 
@@ -110,11 +110,11 @@ Press `?` while running the app to see keybindings
 
 ### Decoder screen
 
-![UI](screenshots/overview.png)
+<!--![UI](screenshots/overview.png)-->
 
 ### Stdout
 
-![UI](screenshots/overview.png)
+<!--![UI](screenshots/overview.png)-->
 
 ## Libraries used
 
