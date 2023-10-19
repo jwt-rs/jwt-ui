@@ -6,12 +6,11 @@ mod handlers;
 mod ui;
 
 use std::{
+  error::Error,
   io::{self, stdout, Stdout},
   panic::{self, PanicInfo},
-  sync::Arc,
 };
 
-use anyhow::Result;
 use app::{jwt_decoder::print_decoded_token, App};
 use banner::BANNER;
 use clap::Parser;
@@ -24,7 +23,6 @@ use ratatui::{
   backend::{Backend, CrosstermBackend},
   Terminal,
 };
-use tokio::sync::Mutex;
 
 use crate::app::jwt_decoder::decode_jwt_token;
 
@@ -50,9 +48,9 @@ pub struct Cli {
   pub secret: String,
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
-  openssl_probe::init_ssl_cert_env_vars();
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
+
+fn main() -> Result<()> {
   panic::set_hook(Box::new(|info| {
     panic_hook(info);
   }));
@@ -64,32 +62,28 @@ async fn main() -> Result<()> {
     panic!("Tick rate must be below 1000");
   }
 
-  // Initialize app state
-  let app = Arc::new(Mutex::new(App::new(
-    cli.tick_rate,
-    cli.token.clone(),
-    cli.secret.clone(),
-  )));
-
   if cli.stdout && cli.token.is_some() {
-    // print decoded result to stdout
-    let mut app = app.lock().await;
-    decode_jwt_token(&mut app);
-    if app.data.error.is_empty() && app.data.decoder.is_decoded() {
-      print_decoded_token(app.data.decoder.get_decoded().as_ref().unwrap(), cli.json);
-    } else {
-      println!("{}", app.data.error);
-    }
+    to_stdout(cli);
   } else {
-    // Launch the UI asynchronously
     // The UI must run in the "main" thread
-    start_ui(cli, &app).await?;
+    start_ui(cli)?;
   }
 
   Ok(())
 }
 
-async fn start_ui(cli: Cli, app: &Arc<Mutex<App>>) -> Result<()> {
+fn to_stdout(cli: Cli) {
+  let mut app = App::new(cli.tick_rate, cli.token.clone(), cli.secret.clone());
+  // print decoded result to stdout
+  decode_jwt_token(&mut app);
+  if app.data.error.is_empty() && app.data.decoder.is_decoded() {
+    print_decoded_token(app.data.decoder.get_decoded().as_ref().unwrap(), cli.json);
+  } else {
+    println!("{}", app.data.error);
+  }
+}
+
+fn start_ui(cli: Cli) -> Result<()> {
   // see https://docs.rs/crossterm/0.17.7/crossterm/terminal/#raw-mode
   enable_raw_mode()?;
   // Terminal initialization
@@ -103,9 +97,10 @@ async fn start_ui(cli: Cli, app: &Arc<Mutex<App>>) -> Result<()> {
   terminal.hide_cursor()?;
   // custom events
   let events = event::Events::new(cli.tick_rate);
+
+  let mut app = App::new(cli.tick_rate, cli.token.clone(), cli.secret.clone());
   // main UI loop
   loop {
-    let mut app = app.lock().await;
     // Get the size of the screen on each loop to account for resize event
     if let Ok(size) = terminal.backend().size() {
       // Reset the size if the terminal was resized
@@ -136,7 +131,6 @@ async fn start_ui(cli: Cli, app: &Arc<Mutex<App>>) -> Result<()> {
         app.on_tick();
       }
     }
-
     if app.should_quit {
       break;
     }
@@ -149,7 +143,7 @@ async fn start_ui(cli: Cli, app: &Arc<Mutex<App>>) -> Result<()> {
 }
 
 // shutdown the CLI and show terminal
-fn shutdown(mut terminal: Terminal<CrosstermBackend<Stdout>>) -> Result<()> {
+fn shutdown(mut terminal: Terminal<CrosstermBackend<Stdout>>) -> io::Result<()> {
   disable_raw_mode()?;
   execute!(terminal.backend_mut(), LeaveAlternateScreen,)?;
   terminal.show_cursor()?;

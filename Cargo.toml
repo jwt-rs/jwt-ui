@@ -26,7 +26,6 @@ edition = "2021"
 [badges]
 
 [dependencies]
-openssl-probe = "0.1.2"
 crossterm = "0.27.0"
 ratatui = { version = "0.23.0", default-features = false, features = [
     'crossterm',
@@ -40,14 +39,10 @@ clap = { version = "4.3.24", features = [
     "error-context",
     "derive",
 ] }
-tokio = { version = "1.32", features = ["macros", "rt-multi-thread"] }
-tokio-stream = { version = "0.1.14", features = ["time"] }
 tui-input = "0.8"
 tui-textarea = { version = "0.2.2", default-features = false, features = [
     "ratatui-crossterm",
 ] }
-duct = "0.13"
-anyhow = "1.0"
 backtrace = "0.3"
 human-panic = "1.1"
 base64 = "0.21.4"
@@ -66,7 +61,7 @@ features = ["user-hooks"]
 [[bin]]
 bench = false
 path = "src/main.rs"
-name = "jwtd"
+name = "jwtui"
 
 [profile.release]
 lto = true
