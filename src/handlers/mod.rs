@@ -4,20 +4,18 @@ use tui_input::backend::crossterm::EventHandler;
 use crate::{
   app::{
     key_binding::DEFAULT_KEYBINDING, models::Scrollable, ActiveBlock, App, InputMode, RouteId,
-    TextInput,
+    TextAreaInput, TextInput,
   },
   event::Key,
 };
 
 pub fn handle_key_events(key: Key, key_event: KeyEvent, app: &mut App) {
   // if input is enabled capture keystrokes
-  if !is_text_editing(&mut app.data.decoder.encoded, key, key_event)
-    && !is_text_editing(&mut app.data.decoder.secret, key, key_event)
-  {
+  if !is_any_text_editing(app, key, key_event) {
     // First handle any global event and then move to route event
     match key {
-      _ if key == DEFAULT_KEYBINDING.esc.key => {
-        handle_escape(app);
+      _ if key == DEFAULT_KEYBINDING.esc.key && app.get_current_route().id == RouteId::Help => {
+        app.pop_navigation_stack();
       }
       _ if key == DEFAULT_KEYBINDING.quit.key || key == DEFAULT_KEYBINDING.quit.alt.unwrap() => {
         app.should_quit = true;
@@ -43,23 +41,18 @@ pub fn handle_key_events(key: Key, key_event: KeyEvent, app: &mut App) {
       _ if key == DEFAULT_KEYBINDING.toggle_theme.key => {
         app.light_theme = !app.light_theme;
       }
-      _ if key == DEFAULT_KEYBINDING.refresh.key => {
-        app.refresh();
+      _ if key == DEFAULT_KEYBINDING.refresh.key => app.refresh(),
+      _ if key == DEFAULT_KEYBINDING.help.key
+        && app.get_current_route().active_block != ActiveBlock::Help =>
+      {
+        app.push_navigation_stack(RouteId::Help, ActiveBlock::Help);
       }
-      _ if key == DEFAULT_KEYBINDING.help.key => {
-        if app.get_current_route().active_block != ActiveBlock::Help {
-          app.push_navigation_stack(RouteId::Help, ActiveBlock::Help);
-        }
-      }
-      _ if key == DEFAULT_KEYBINDING.cycle_main_views.key => {
-        app.cycle_main_routes();
-      }
-      _ if key == DEFAULT_KEYBINDING.toggle_input_edit.key => {
-        handle_edit_event(app);
-      }
-      _ if key == DEFAULT_KEYBINDING.copy_to_clipboard.key => {
-        handle_copy_event(app);
-      }
+      _ if key == DEFAULT_KEYBINDING.cycle_main_views.key => app.cycle_main_routes(),
+
+      _ if key == DEFAULT_KEYBINDING.toggle_input_edit.key => handle_edit_event(app),
+
+      _ if key == DEFAULT_KEYBINDING.copy_to_clipboard.key => handle_copy_event(app),
+
       _ => handle_route_events(key, app),
     }
   }
@@ -70,18 +63,18 @@ pub fn handle_mouse_events(mouse: MouseEvent, app: &mut App) {
     // mouse scrolling is inverted
     MouseEventKind::ScrollDown => handle_block_scroll(app, true, true, false),
     MouseEventKind::ScrollUp => handle_block_scroll(app, false, true, false),
-    _ => {}
+    _ => { /* do nothing */ }
   }
 }
 
 fn handle_edit_event(app: &mut App) {
   match app.get_current_route().active_block {
-    ActiveBlock::DecoderToken => {
-      app.data.decoder.encoded.input_mode = InputMode::Editing;
-    }
-    _ => {
-      app.data.decoder.secret.input_mode = InputMode::Editing;
-    }
+    ActiveBlock::DecoderToken => app.data.decoder.encoded.input_mode = InputMode::Editing,
+    ActiveBlock::DecoderSecret => app.data.decoder.secret.input_mode = InputMode::Editing,
+    ActiveBlock::EncoderHeader => app.data.encoder.header.input_mode = InputMode::Editing,
+    ActiveBlock::EncoderPayload => app.data.encoder.payload.input_mode = InputMode::Editing,
+    ActiveBlock::EncoderSecret => app.data.encoder.secret.input_mode = InputMode::Editing,
+    _ => { /* do nothing */ }
   }
 }
 
@@ -119,6 +112,19 @@ fn handle_copy_event(app: &mut App) {
   }
 }
 
+fn is_any_text_editing(app: &mut App, key: Key, key_event: KeyEvent) -> bool {
+  match app.get_current_route().active_block {
+    ActiveBlock::DecoderToken => is_text_editing(&mut app.data.decoder.encoded, key, key_event),
+    ActiveBlock::DecoderSecret => is_text_editing(&mut app.data.decoder.secret, key, key_event),
+    ActiveBlock::EncoderHeader => {
+      is_text_area_editing(&mut app.data.encoder.header, key, key_event)
+    }
+    ActiveBlock::EncoderPayload => false,
+    ActiveBlock::EncoderSecret => false,
+    _ => false,
+  }
+}
+
 fn is_text_editing(input: &mut TextInput, key: Key, key_event: KeyEvent) -> bool {
   if input.input_mode == InputMode::Editing {
     if key == DEFAULT_KEYBINDING.esc.key {
@@ -132,9 +138,16 @@ fn is_text_editing(input: &mut TextInput, key: Key, key_event: KeyEvent) -> bool
   }
 }
 
-fn handle_escape(app: &mut App) {
-  if app.get_current_route().id == RouteId::Help {
-    app.pop_navigation_stack();
+fn is_text_area_editing(input: &mut TextAreaInput<'_>, key: Key, key_event: KeyEvent) -> bool {
+  if input.input_mode == InputMode::Editing {
+    if key == DEFAULT_KEYBINDING.esc.key {
+      input.input_mode = InputMode::Normal;
+    } else {
+      input.input.input(Event::Key(key_event));
+    }
+    true
+  } else {
+    false
   }
 }
 
@@ -243,9 +256,8 @@ mod tests {
     assert!(!inverse_dir(true, true));
   }
 
-  #[tokio::test]
-
-  async fn test_handle_key_events_for_editor() {
+  #[test]
+  fn test_handle_key_events_for_editor() {
     let mut app = App::default();
 
     app.route_home();
@@ -258,10 +270,62 @@ mod tests {
     let key_evt = KeyEvent::from(KeyCode::Char('f'));
     handle_key_events(Key::from(key_evt), key_evt, &mut app);
     assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Editing);
+    assert_eq!(app.data.decoder.encoded.input.value(), String::from("f"));
 
     let key_evt = KeyEvent::from(KeyCode::Esc);
     handle_key_events(Key::from(key_evt), key_evt, &mut app);
     assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Normal);
+  }
+
+  #[test]
+  fn test_handle_key_events_for_editor_editing() {
+    let mut app = App::default();
+
+    app.data.decoder.encoded.input_mode = InputMode::Editing;
+
+    app.route_home();
+    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Editing);
+
+    let key_evt = KeyEvent::from(KeyCode::Char('e'));
+    handle_key_events(Key::from(key_evt), key_evt, &mut app);
+    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Editing);
+    assert_eq!(app.data.decoder.encoded.input.value(), String::from("e"));
+
+    let key_evt = KeyEvent::from(KeyCode::Esc);
+    handle_key_events(Key::from(key_evt), key_evt, &mut app);
+    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Normal);
+
+    let key_evt = KeyEvent::from(KeyCode::Char('e'));
+    handle_key_events(Key::from(key_evt), key_evt, &mut app);
+    assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Editing);
+  }
+
+  #[test]
+  fn test_handle_key_events_for_textarea_editing() {
+    let mut app = App::default();
+
+    app.data.encoder.header.input_mode = InputMode::Editing;
+
+    let route = app.main_tabs.set_index(1).route.clone();
+    app.push_navigation_route(route);
+
+    assert_eq!(app.data.encoder.header.input_mode, InputMode::Editing);
+
+    let key_evt = KeyEvent::from(KeyCode::Char('e'));
+    handle_key_events(Key::from(key_evt), key_evt, &mut app);
+    assert_eq!(app.data.encoder.header.input_mode, InputMode::Editing);
+    assert_eq!(
+      app.data.encoder.header.input.lines().join("sep"),
+      String::from("e")
+    );
+
+    let key_evt = KeyEvent::from(KeyCode::Esc);
+    handle_key_events(Key::from(key_evt), key_evt, &mut app);
+    assert_eq!(app.data.encoder.header.input_mode, InputMode::Normal);
+
+    let key_evt = KeyEvent::from(KeyCode::Char('e'));
+    handle_key_events(Key::from(key_evt), key_evt, &mut app);
+    assert_eq!(app.data.encoder.header.input_mode, InputMode::Editing);
   }
 
   #[test]

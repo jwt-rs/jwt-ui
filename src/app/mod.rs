@@ -7,6 +7,7 @@ mod utils;
 
 use ratatui::layout::Rect;
 use tui_input::Input;
+use tui_textarea::TextArea;
 
 use self::{
   jwt_decoder::{decode_jwt_token, Decoder},
@@ -62,12 +63,20 @@ pub struct TextInput {
   pub input_mode: InputMode,
 }
 
+#[derive(Default, Debug, Clone)]
+pub struct TextAreaInput<'a> {
+  /// Current value of the text area
+  pub input: TextArea<'a>,
+  /// Current input mode
+  pub input_mode: InputMode,
+}
+
 /// Holds data state for various views
 #[derive(Default)]
 pub struct Data {
   pub error: String,
   pub decoder: Decoder,
-  pub encoder: Encoder,
+  pub encoder: Encoder<'static>,
 }
 
 /// Holds main application state
@@ -198,8 +207,8 @@ mod tests {
 
   use super::*;
 
-  #[tokio::test]
-  async fn test_on_tick_first_render() {
+  #[test]
+  fn test_on_tick_first_render() {
     let mut app = App::default();
 
     app.data.decoder.encoded.input = Input::new("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.he0ErCNloe4J7Id0Ry2SEDg09lKkZkfsRiGsdX_vgEg".to_string());

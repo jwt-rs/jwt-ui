@@ -2,17 +2,17 @@ use ratatui::{
   backend::Backend,
   layout::{Constraint, Rect},
   text::Text,
-  widgets::{Block, Paragraph},
+  widgets::{Block, Paragraph, Wrap},
   Frame,
 };
 
 use super::utils::{
-  get_selectable_block, horizontal_chunks, render_input_widget, style_default, vertical_chunks,
-  vertical_chunks_with_margin,
+  get_selectable_block, horizontal_chunks, render_input_widget, style_default, style_primary,
+  vertical_chunks, vertical_chunks_with_margin,
 };
 use crate::app::{ActiveBlock, App};
 
-pub fn draw_encoder<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+pub fn draw_encoder<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let chunks = horizontal_chunks(
     vec![Constraint::Percentage(50), Constraint::Percentage(50)],
     area,
@@ -32,11 +32,20 @@ fn draw_encoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 
   f.render_widget(block, area);
 
-  //   let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
-  //   render_input_widget(f, chunks[0], &app.data.encoder.encoded, app.light_theme);
+  let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
+
+  let encoded = app.data.encoder.encoded.get_txt();
+  let mut txt = Text::from(encoded.clone());
+  txt.patch_style(style_primary(app.light_theme));
+
+  let paragraph = Paragraph::new(txt)
+    .block(Block::default())
+    .wrap(Wrap { trim: false })
+    .scroll((app.data.encoder.encoded.offset, 0));
+  f.render_widget(paragraph, chunks[0]);
 }
 
-fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let chunks = vertical_chunks(
     vec![
       Constraint::Percentage(30),
@@ -51,7 +60,7 @@ fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   draw_secret_block(f, app, chunks[2]);
 }
 
-fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let block = get_selectable_block(
     "Header: Algorithm & Token Type",
     app.data.encoder.blocks.get_active_route(),
@@ -62,17 +71,12 @@ fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 
   f.render_widget(block, area);
 
-  //   let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
+  let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
 
-  //   let header = app.data.encoder.header.get_txt();
-  //   let mut txt = Text::from(header.clone());
-  //   txt.patch_style(style_primary(app.light_theme));
+  let textarea = &mut app.data.encoder.header.input;
+  textarea.set_block(Block::default());
 
-  //   let paragraph = Paragraph::new(txt)
-  //     .block(Block::default())
-  //     .wrap(Wrap { trim: false })
-  //     .scroll((app.data.encoder.header.offset, 0));
-  //   f.render_widget(paragraph, chunks[0]);
+  f.render_widget(textarea.widget(), chunks[0]);
 }
 
 fn draw_payload_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
