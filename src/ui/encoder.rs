@@ -2,15 +2,15 @@ use ratatui::{
   backend::Backend,
   layout::{Constraint, Rect},
   text::Text,
-  widgets::{Block, Paragraph, Wrap},
+  widgets::{Block, Borders, Paragraph, Wrap},
   Frame,
 };
 
 use super::utils::{
-  get_selectable_block, horizontal_chunks, render_input_widget, style_default, style_primary,
-  vertical_chunks, vertical_chunks_with_margin,
+  get_input_style, get_selectable_block, horizontal_chunks, render_input_widget, style_default,
+  style_primary, vertical_chunks, vertical_chunks_with_margin,
 };
-use crate::app::{ActiveBlock, App};
+use crate::app::{ActiveBlock, App, TextAreaInput};
 
 pub fn draw_encoder<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let chunks = horizontal_chunks(
@@ -21,43 +21,24 @@ pub fn draw_encoder<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect)
   draw_encoded_block(f, app, chunks[1]);
 }
 
-fn draw_encoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
-  let block = get_selectable_block(
-    "Encoded Token",
-    app.data.encoder.blocks.get_active_route(),
-    ActiveBlock::EncoderToken,
-    None,
-    app.light_theme,
-  );
-
-  f.render_widget(block, area);
-
-  let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
-
-  let encoded = app.data.encoder.encoded.get_txt();
-  let mut txt = Text::from(encoded.clone());
-  txt.patch_style(style_primary(app.light_theme));
-
-  let paragraph = Paragraph::new(txt)
-    .block(Block::default())
-    .wrap(Wrap { trim: false })
-    .scroll((app.data.encoder.encoded.offset, 0));
-  f.render_widget(paragraph, chunks[0]);
-}
-
 fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let chunks = vertical_chunks(
-    vec![
-      Constraint::Percentage(30),
-      Constraint::Percentage(40),
-      Constraint::Percentage(30),
-    ],
+    vec![Constraint::Percentage(40), Constraint::Percentage(60)],
     area,
   );
 
   draw_header_block(f, app, chunks[0]);
   draw_payload_block(f, app, chunks[1]);
-  draw_secret_block(f, app, chunks[2]);
+}
+
+fn draw_encoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+  let chunks = vertical_chunks(
+    vec![Constraint::Percentage(30), Constraint::Percentage(70)],
+    area,
+  );
+
+  draw_secret_block(f, app, chunks[0]);
+  draw_token_block(f, app, chunks[1]);
 }
 
 fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
@@ -65,41 +46,26 @@ fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect
     "Header: Algorithm & Token Type",
     app.data.encoder.blocks.get_active_route(),
     ActiveBlock::EncoderHeader,
-    None,
+    Some(&app.data.encoder.header.input_mode),
     app.light_theme,
   );
 
   f.render_widget(block, area);
 
-  let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
-
-  let textarea = &mut app.data.encoder.header.input;
-  textarea.set_block(Block::default());
-
-  f.render_widget(textarea.widget(), chunks[0]);
+  render_text_area_widget(f, area, &mut app.data.encoder.header, app.light_theme);
 }
 
-fn draw_payload_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_payload_block<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   let block = get_selectable_block(
     "Payload: Claims",
     app.data.encoder.blocks.get_active_route(),
     ActiveBlock::EncoderPayload,
-    None,
+    Some(&app.data.encoder.payload.input_mode),
     app.light_theme,
   );
   f.render_widget(block, area);
 
-  //   let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
-
-  //   let payload = app.data.encoder.payload.get_txt();
-  //   let mut txt = Text::from(payload.clone());
-  //   txt.patch_style(style_primary(app.light_theme));
-
-  //   let paragraph = Paragraph::new(txt)
-  //     .block(Block::default())
-  //     .wrap(Wrap { trim: false })
-  //     .scroll((app.data.encoder.payload.offset, 0));
-  //   f.render_widget(paragraph, chunks[0]);
+  render_text_area_widget(f, area, &mut app.data.encoder.payload, app.light_theme);
 }
 
 fn draw_secret_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
@@ -127,100 +93,144 @@ fn draw_secret_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   render_input_widget(f, chunks[1], &app.data.encoder.secret, app.light_theme);
 }
 
+fn draw_token_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+  let block = get_selectable_block(
+    "Encoded Token",
+    app.data.encoder.blocks.get_active_route(),
+    ActiveBlock::EncoderToken,
+    None,
+    app.light_theme,
+  );
+
+  f.render_widget(block, area);
+
+  let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
+
+  let encoded = app.data.encoder.encoded.get_txt();
+  let mut txt = Text::from(encoded.clone());
+  txt.patch_style(style_primary(app.light_theme));
+
+  let paragraph = Paragraph::new(txt)
+    .block(Block::default())
+    .wrap(Wrap { trim: false })
+    .scroll((app.data.encoder.encoded.offset, 0));
+  f.render_widget(paragraph, chunks[0]);
+}
+
 // Utility methods
+fn render_text_area_widget<B: Backend>(
+  f: &mut Frame<'_, B>,
+  area: Rect,
+  text_input: &mut TextAreaInput<'_>,
+  light_theme: bool,
+) {
+  let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
+  let textarea = &mut text_input.input;
+  textarea.set_block(
+    Block::default()
+      .borders(Borders::ALL)
+      .style(get_input_style(&text_input.input_mode, light_theme)),
+  );
 
-// #[cfg(test)]
-// mod tests {
-//   use crate::ui::utils::{COLOR_CYAN, COLOR_WHITE, COLOR_YELLOW};
+  f.render_widget(textarea.widget(), chunks[0]);
+}
 
-//   use super::*;
-//   use ratatui::{
-//     backend::TestBackend,
-//     prelude::Buffer,
-//     style::{Modifier, Style},
-//     Terminal,
-//   };
+#[cfg(test)]
+mod tests {
+  use crate::ui::utils::{COLOR_CYAN, COLOR_WHITE, COLOR_YELLOW};
 
-//   #[test]
-//   fn test_draw_decoder() {
-//     let mut app = App::new(
-//           250,
-//           Some("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o".into()),
-//           "secret".into()
-//       );
+  use super::*;
+  use ratatui::{
+    backend::TestBackend,
+    prelude::Buffer,
+    style::{Modifier, Style},
+    Terminal,
+  };
 
-//     app.on_tick();
+  #[test]
+  fn test_draw_encoder() {
+    let mut app = App::new(
+        250,
+        Some("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o".into()), 
+        "secret".into()
+    );
 
-//     let backend = TestBackend::new(100, 20);
-//     let mut terminal = Terminal::new(backend).unwrap();
+    app.on_tick();
 
-//     terminal
-//       .draw(|f| {
-//         draw_encoder(f, &app, f.size());
-//       })
-//       .unwrap();
+    let backend = TestBackend::new(100, 20);
+    let mut terminal = Terminal::new(backend).unwrap();
 
-//     let mut expected = Buffer::with_lines(vec![
-//       r#"┌ Encoded Token (Press <e> to edit | <c> to copy)┐┌ Header: Algorithm & Token Type ────────────────┐"#,
-//       r#"│┌──────────────────────────────────────────────┐││{                                               │"#,
-//       r#"││eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiO│││  "typ": "JWT",                                 │"#,
-//       r#"││iIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF│││  "alg": "HS256"                                │"#,
-//       r#"││0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzW│││}                                               │"#,
-//       r#"││XcXNrz0ogtVhfEd2o                             ││└────────────────────────────────────────────────┘"#,
-//       r#"││                                              ││┌ Payload: Claims ───────────────────────────────┐"#,
-//       r#"││                                              │││{                                               │"#,
-//       r#"││                                              │││  "iat": 1516239022,                            │"#,
-//       r#"││                                              │││  "name": "John Doe",                           │"#,
-//       r#"││                                              │││  "sub": "1234567890"                           │"#,
-//       r#"││                                              │││}                                               │"#,
-//       r#"││                                              │││                                                │"#,
-//       r#"││                                              ││└────────────────────────────────────────────────┘"#,
-//       r#"││                                              ││┌ Verify Signature ──────────────────────────────┐"#,
-//       r#"││                                              │││Prepend 'b64:' for base64 encoded secret. Prepen│"#,
-//       r#"││                                              │││┌──────────────────────────────────────────────┐│"#,
-//       r#"││                                              ││││secret                                        ││"#,
-//       r#"│└──────────────────────────────────────────────┘││└──────────────────────────────────────────────┘│"#,
-//       r#"└────────────────────────────────────────────────┘└────────────────────────────────────────────────┘"#,
-//     ]);
+    terminal
+      .draw(|f| {
+        draw_encoder(f, &mut app, f.size());
+      })
+      .unwrap();
 
-//     // set expected row styles
-//     for row in 0..=19 {
-//       for col in 0..=99 {
-//         match (col, row) {
-//           (1..=15, 0) => {
-//             expected.get_mut(col, row).set_style(
-//               Style::default()
-//                 .fg(COLOR_YELLOW)
-//                 .add_modifier(Modifier::BOLD),
-//             );
-//           }
-//           (51..=82, 0) | (51..=67, 6) | (51..=68, 14) => {
-//             expected.get_mut(col, row).set_style(
-//               Style::default()
-//                 .fg(COLOR_WHITE)
-//                 .add_modifier(Modifier::BOLD),
-//             );
-//           }
-//           (0 | 16..=49, 0) | (0..=49, 19) | (0 | 49, _) => {
-//             expected
-//               .get_mut(col, row)
-//               .set_style(Style::default().fg(COLOR_YELLOW));
-//           }
+    let mut expected = Buffer::with_lines(vec![
+      r#"┌ Encoded Token (Press <e> to edit | <c> to copy)┐┌ Header: Algorithm & Token Type ────────────────┐"#,
+      r#"│┌──────────────────────────────────────────────┐││{                                               │"#,
+      r#"││eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiO│││  "typ": "JWT",                                 │"#,
+      r#"││iIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF│││  "alg": "HS256"                                │"#,
+      r#"││0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzW│││}                                               │"#,
+      r#"││XcXNrz0ogtVhfEd2o                             │││                                                │"#,
+      r#"││                                              │││                                                │"#,
+      r#"││                                              ││└────────────────────────────────────────────────┘"#,
+      r#"││                                              ││┌ Payload: Claims ───────────────────────────────┐"#,
+      r#"││                                              │││{                                               │"#,
+      r#"││                                              │││  "iat": 1516239022,                            │"#,
+      r#"││                                              │││  "name": "John Doe",                           │"#,
+      r#"│└──────────────────────────────────────────────┘││  "sub": "1234567890"                           │"#,
+      r#"└────────────────────────────────────────────────┘│}                                               │"#,
+      r#"┌ Verify Signature ──────────────────────────────┐│                                                │"#,
+      r#"│Prepend 'b64:' for base64 encoded secret. Prepen││                                                │"#,
+      r#"│┌──────────────────────────────────────────────┐││                                                │"#,
+      r#"││secret                                        │││                                                │"#,
+      r#"│└──────────────────────────────────────────────┘││                                                │"#,
+      r#"└────────────────────────────────────────────────┘└────────────────────────────────────────────────┘"#,
+    ]);
 
-//           (51, 1 | 4 | 7 | 11) | (51..=65, 2) | (51..=66, 3) | (51..=70, 8) | (51..=71, 9 | 10) => {
-//             expected
-//               .get_mut(col, row)
-//               .set_style(Style::default().fg(COLOR_CYAN));
-//           }
-//           _ => {
-//             expected
-//               .get_mut(col, row)
-//               .set_style(Style::default().fg(COLOR_WHITE));
-//           }
-//         }
-//       }
-//     }
+    // set expected row styles
+    for row in 0..=19 {
+      for col in 0..=99 {
+        match (col, row) {
+          (1..=15, 0) => {
+            expected.get_mut(col, row).set_style(
+              Style::default()
+                .fg(COLOR_YELLOW)
+                .add_modifier(Modifier::BOLD),
+            );
+          }
+          (51..=82, 0) | (51..=67, 8) | (1..=18, 14) => {
+            expected.get_mut(col, row).set_style(
+              Style::default()
+                .fg(COLOR_WHITE)
+                .add_modifier(Modifier::BOLD),
+            );
+          }
+          (0 | 16..=49, 0) | (0..=49, 13) | (0 | 49, 1..=13 | 20..=99) => {
+            expected
+              .get_mut(col, row)
+              .set_style(Style::default().fg(COLOR_YELLOW));
+          }
 
-//     terminal.backend().assert_buffer(&expected);
-//   }
-// }
+          (51, 1 | 4 | 9 | 11 | 13)
+          | (51..=65, 2)
+          | (51..=66, 3)
+          | (51..=70, 10 | 12)
+          | (52..=71, 11 | 12) => {
+            expected
+              .get_mut(col, row)
+              .set_style(Style::default().fg(COLOR_CYAN));
+          }
+          _ => {
+            expected
+              .get_mut(col, row)
+              .set_style(Style::default().fg(COLOR_WHITE));
+          }
+        }
+      }
+    }
+
+    terminal.backend().assert_buffer(&expected);
+  }
+}

@@ -232,7 +232,7 @@ pub fn get_hint(input_mode: &InputMode, is_active: bool) -> &str {
   if is_active {
     match input_mode {
       InputMode::Normal => "(Press <e> to edit | <c> to copy) ",
-      InputMode::Editing => "(Press <esc> to stop editing | <c> to copy) ",
+      InputMode::Editing => "(Press <esc> to stop editing) ",
     }
   } else {
     ""

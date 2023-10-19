@@ -22,6 +22,26 @@ pub fn draw_decoder<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 }
 
 fn draw_encoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+  let chunks = vertical_chunks(
+    vec![Constraint::Percentage(70), Constraint::Percentage(30)],
+    area,
+  );
+
+  draw_token_block(f, app, chunks[0]);
+  draw_secret_block(f, app, chunks[1]);
+}
+
+fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+  let chunks = vertical_chunks(
+    vec![Constraint::Percentage(40), Constraint::Percentage(60)],
+    area,
+  );
+
+  draw_header_block(f, app, chunks[0]);
+  draw_payload_block(f, app, chunks[1]);
+}
+
+fn draw_token_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   let block = get_selectable_block(
     "Encoded Token",
     app.data.decoder.blocks.get_active_route(),
@@ -36,19 +56,29 @@ fn draw_encoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   render_input_widget(f, chunks[0], &app.data.decoder.encoded, app.light_theme);
 }
 
-fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
-  let chunks = vertical_chunks(
-    vec![
-      Constraint::Percentage(30),
-      Constraint::Percentage(40),
-      Constraint::Percentage(30),
-    ],
-    area,
+fn draw_secret_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+  let block = get_selectable_block(
+    "Verify Signature",
+    app.data.decoder.blocks.get_active_route(),
+    ActiveBlock::DecoderSecret,
+    Some(&app.data.decoder.secret.input_mode),
+    app.light_theme,
   );
 
-  draw_header_block(f, app, chunks[0]);
-  draw_payload_block(f, app, chunks[1]);
-  draw_secret_block(f, app, chunks[2]);
+  f.render_widget(block, area);
+
+  let chunks =
+    vertical_chunks_with_margin(vec![Constraint::Length(1), Constraint::Min(2)], area, 1);
+
+  let mut text = Text::from(
+    "Prepend 'b64:' for base64 encoded secret. Prepend '@' for file path (.pem, .pk8, .der)",
+  );
+  text.patch_style(style_default(app.light_theme));
+  let paragraph = Paragraph::new(text).block(Block::default());
+
+  f.render_widget(paragraph, chunks[0]);
+
+  render_input_widget(f, chunks[1], &app.data.decoder.secret, app.light_theme);
 }
 
 fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
@@ -98,31 +128,6 @@ fn draw_payload_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   f.render_widget(paragraph, chunks[0]);
 }
 
-fn draw_secret_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
-  let block = get_selectable_block(
-    "Verify Signature",
-    app.data.decoder.blocks.get_active_route(),
-    ActiveBlock::DecoderSecret,
-    Some(&app.data.decoder.secret.input_mode),
-    app.light_theme,
-  );
-
-  f.render_widget(block, area);
-
-  let chunks =
-    vertical_chunks_with_margin(vec![Constraint::Length(1), Constraint::Min(2)], area, 1);
-
-  let mut text = Text::from(
-    "Prepend 'b64:' for base64 encoded secret. Prepend '@' for file path (.pem, .pk8, .der)",
-  );
-  text.patch_style(style_default(app.light_theme));
-  let paragraph = Paragraph::new(text).block(Block::default());
-
-  f.render_widget(paragraph, chunks[0]);
-
-  render_input_widget(f, chunks[1], &app.data.decoder.secret, app.light_theme);
-}
-
 #[cfg(test)]
 mod tests {
   use crate::ui::utils::{COLOR_CYAN, COLOR_WHITE, COLOR_YELLOW};
@@ -160,20 +165,20 @@ mod tests {
       r#"││eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiO│││  "typ": "JWT",                                 │"#,
       r#"││iIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF│││  "alg": "HS256"                                │"#,
       r#"││0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzW│││}                                               │"#,
-      r#"││XcXNrz0ogtVhfEd2o                             ││└────────────────────────────────────────────────┘"#,
+      r#"││XcXNrz0ogtVhfEd2o                             │││                                                │"#,
+      r#"││                                              │││                                                │"#,
+      r#"││                                              ││└────────────────────────────────────────────────┘"#,
       r#"││                                              ││┌ Payload: Claims ───────────────────────────────┐"#,
       r#"││                                              │││{                                               │"#,
       r#"││                                              │││  "iat": 1516239022,                            │"#,
       r#"││                                              │││  "name": "John Doe",                           │"#,
-      r#"││                                              │││  "sub": "1234567890"                           │"#,
-      r#"││                                              │││}                                               │"#,
-      r#"││                                              │││                                                │"#,
-      r#"││                                              ││└────────────────────────────────────────────────┘"#,
-      r#"││                                              ││┌ Verify Signature ──────────────────────────────┐"#,
-      r#"││                                              │││Prepend 'b64:' for base64 encoded secret. Prepen│"#,
-      r#"││                                              │││┌──────────────────────────────────────────────┐│"#,
-      r#"││                                              ││││secret                                        ││"#,
-      r#"│└──────────────────────────────────────────────┘││└──────────────────────────────────────────────┘│"#,
+      r#"│└──────────────────────────────────────────────┘││  "sub": "1234567890"                           │"#,
+      r#"└────────────────────────────────────────────────┘│}                                               │"#,
+      r#"┌ Verify Signature ──────────────────────────────┐│                                                │"#,
+      r#"│Prepend 'b64:' for base64 encoded secret. Prepen││                                                │"#,
+      r#"│┌──────────────────────────────────────────────┐││                                                │"#,
+      r#"││secret                                        │││                                                │"#,
+      r#"│└──────────────────────────────────────────────┘││                                                │"#,
       r#"└────────────────────────────────────────────────┘└────────────────────────────────────────────────┘"#,
     ]);
 
@@ -188,20 +193,24 @@ mod tests {
                 .add_modifier(Modifier::BOLD),
             );
           }
-          (51..=82, 0) | (51..=67, 6) | (51..=68, 14) => {
+          (51..=82, 0) | (51..=67, 8) | (1..=18, 14) => {
             expected.get_mut(col, row).set_style(
               Style::default()
                 .fg(COLOR_WHITE)
                 .add_modifier(Modifier::BOLD),
             );
           }
-          (0 | 16..=49, 0) | (0..=49, 19) | (0 | 49, _) => {
+          (0 | 16..=49, 0) | (0..=49, 13) | (0 | 49, 1..=13 | 20..=99) => {
             expected
               .get_mut(col, row)
               .set_style(Style::default().fg(COLOR_YELLOW));
           }
 
-          (51, 1 | 4 | 7 | 11) | (51..=65, 2) | (51..=66, 3) | (51..=70, 8) | (51..=71, 9 | 10) => {
+          (51, 1 | 4 | 9 | 11 | 13)
+          | (51..=65, 2)
+          | (51..=66, 3)
+          | (51..=70, 10 | 12)
+          | (52..=71, 11 | 12) => {
             expected
               .get_mut(col, row)
               .set_style(Style::default().fg(COLOR_CYAN));

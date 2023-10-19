@@ -52,6 +52,13 @@ impl Default for Decoder {
           title: "".into(),
           route: Route {
             id: RouteId::Decoder,
+            active_block: ActiveBlock::DecoderSecret,
+          },
+        },
+        TabRoute {
+          title: "".into(),
+          route: Route {
+            id: RouteId::Decoder,
             active_block: ActiveBlock::DecoderHeader,
           },
         },
@@ -60,13 +67,6 @@ impl Default for Decoder {
           route: Route {
             id: RouteId::Decoder,
             active_block: ActiveBlock::DecoderPayload,
-          },
-        },
-        TabRoute {
-          title: "".into(),
-          route: Route {
-            id: RouteId::Decoder,
-            active_block: ActiveBlock::DecoderSecret,
           },
         },
       ]),

@@ -93,20 +93,16 @@ fn handle_copy_event(app: &mut App) {
       copy_to_clipboard(app.data.decoder.secret.input.value().into());
     }
     ActiveBlock::EncoderToken => {
-      todo!()
-      //   copy_to_clipboard(app.data.decoder.encoded.input.value().into());
+      copy_to_clipboard(app.data.encoder.encoded.get_txt());
     }
     ActiveBlock::EncoderHeader => {
-      todo!()
-      //   copy_to_clipboard(app.data.decoder.encoded.input.value().into());
+      copy_to_clipboard(app.data.encoder.header.input.lines().join("\n"));
     }
     ActiveBlock::EncoderPayload => {
-      todo!()
-      //   copy_to_clipboard(app.data.decoder.encoded.input.value().into());
+      copy_to_clipboard(app.data.encoder.payload.input.lines().join("\n"));
     }
     ActiveBlock::EncoderSecret => {
-      todo!()
-      //   copy_to_clipboard(app.data.decoder.encoded.input.value().into());
+      copy_to_clipboard(app.data.encoder.secret.input.value().into());
     }
     _ => { /* Do nothing */ }
   }
@@ -119,8 +115,10 @@ fn is_any_text_editing(app: &mut App, key: Key, key_event: KeyEvent) -> bool {
     ActiveBlock::EncoderHeader => {
       is_text_area_editing(&mut app.data.encoder.header, key, key_event)
     }
-    ActiveBlock::EncoderPayload => false,
-    ActiveBlock::EncoderSecret => false,
+    ActiveBlock::EncoderPayload => {
+      is_text_area_editing(&mut app.data.encoder.payload, key, key_event)
+    }
+    ActiveBlock::EncoderSecret => is_text_editing(&mut app.data.encoder.secret, key, key_event),
     _ => false,
   }
 }
@@ -168,7 +166,9 @@ fn handle_route_events(key: Key, app: &mut App) {
         _ => {}
       };
     }
-    RouteId::Encoder => {}
+    RouteId::Encoder => {
+      //   todo!()
+    }
     _ => { /* Do nothing */ }
   }
 }
@@ -180,10 +180,11 @@ fn handle_left_key_events(app: &mut App) {
       app.data.decoder.blocks.previous();
       app.push_navigation_route(app.data.decoder.blocks.get_active_route().clone());
     }
-    RouteId::Encoder => {}
-    _ => {
-      todo!()
+    RouteId::Encoder => {
+      app.data.encoder.blocks.previous();
+      app.push_navigation_route(app.data.encoder.blocks.get_active_route().clone());
     }
+    RouteId::Help => { /* Do nothing */ }
   }
 }
 
@@ -194,10 +195,11 @@ fn handle_right_key_events(app: &mut App) {
       app.data.decoder.blocks.next();
       app.push_navigation_route(app.data.decoder.blocks.get_active_route().clone());
     }
-    RouteId::Encoder => {}
-    _ => {
-      todo!()
+    RouteId::Encoder => {
+      app.data.encoder.blocks.next();
+      app.push_navigation_route(app.data.encoder.blocks.get_active_route().clone());
     }
+    RouteId::Help => { /* Do nothing */ }
   }
 }
 

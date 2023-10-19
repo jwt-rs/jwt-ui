@@ -24,29 +24,29 @@ impl Default for Encoder<'_> {
         TabRoute {
           title: "".into(),
           route: Route {
-            id: RouteId::Decoder,
-            active_block: ActiveBlock::DecoderToken,
+            id: RouteId::Encoder,
+            active_block: ActiveBlock::EncoderHeader,
           },
         },
         TabRoute {
           title: "".into(),
           route: Route {
-            id: RouteId::Decoder,
-            active_block: ActiveBlock::DecoderHeader,
+            id: RouteId::Encoder,
+            active_block: ActiveBlock::EncoderPayload,
           },
         },
         TabRoute {
           title: "".into(),
           route: Route {
-            id: RouteId::Decoder,
-            active_block: ActiveBlock::DecoderPayload,
+            id: RouteId::Encoder,
+            active_block: ActiveBlock::EncoderSecret,
           },
         },
         TabRoute {
           title: "".into(),
           route: Route {
-            id: RouteId::Decoder,
-            active_block: ActiveBlock::DecoderSecret,
+            id: RouteId::Encoder,
+            active_block: ActiveBlock::EncoderToken,
           },
         },
       ]),
