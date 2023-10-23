@@ -11,7 +11,7 @@ use tui_textarea::TextArea;
 
 use self::{
   jwt_decoder::{decode_jwt_token, Decoder},
-  jwt_encoder::Encoder,
+  jwt_encoder::{encode_jwt_token, Encoder},
   jwt_utils::JWTError,
   key_binding::DEFAULT_KEYBINDING,
   models::{StatefulTable, TabRoute, TabsState},
@@ -63,12 +63,30 @@ pub struct TextInput {
   pub input_mode: InputMode,
 }
 
+impl TextInput {
+  fn new(input: String) -> Self {
+    Self {
+      input: Input::new(input),
+      input_mode: InputMode::Normal,
+    }
+  }
+}
+
 #[derive(Default, Debug, Clone)]
 pub struct TextAreaInput<'a> {
   /// Current value of the text area
   pub input: TextArea<'a>,
   /// Current input mode
   pub input_mode: InputMode,
+}
+
+impl<'a> TextAreaInput<'a> {
+  fn new(input: Vec<String>) -> Self {
+    Self {
+      input: input.into(),
+      input_mode: InputMode::Normal,
+    }
+  }
 }
 
 /// Holds data state for various views
@@ -100,7 +118,7 @@ impl Default for App {
   fn default() -> Self {
     App {
       navigation_stack: vec![DEFAULT_ROUTE],
-      title: " JWT CLI - A command line UI for decoding JSON Web Tokens ",
+      title: " JWT TUI - A command line UI for decoding/encoding JSON Web Tokens ",
       should_quit: false,
       main_tabs: TabsState::new(vec![
         TabRoute {
@@ -136,17 +154,8 @@ impl App {
     App {
       tick_rate,
       data: Data {
-        decoder: Decoder {
-          encoded: TextInput {
-            input: Input::new(token.unwrap_or_default()),
-            input_mode: InputMode::Normal,
-          },
-          secret: TextInput {
-            input: Input::new(secret),
-            input_mode: InputMode::Normal,
-          },
-          ..Decoder::default()
-        },
+        decoder: Decoder::new(token, secret.clone()),
+        encoder: Encoder::new(secret),
         ..Data::default()
       },
       ..App::default()
@@ -170,6 +179,7 @@ impl App {
   pub fn push_navigation_route(&mut self, route: Route) {
     self.navigation_stack.push(route);
     self.is_routing = true;
+    self.data.error = String::default();
   }
 
   pub fn pop_navigation_stack(&mut self) -> Option<Route> {
@@ -198,7 +208,11 @@ impl App {
   }
 
   pub fn on_tick(&mut self) {
-    decode_jwt_token(self);
+    match self.get_current_route().id {
+      RouteId::Decoder => decode_jwt_token(self),
+      RouteId::Encoder => encode_jwt_token(self),
+      RouteId::Help => { /* nothing to do */ }
+    }
   }
 }
 
@@ -209,9 +223,8 @@ mod tests {
 
   #[test]
   fn test_on_tick_first_render() {
-    let mut app = App::default();
+    let mut app = App::new(250, Some("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o".to_string()), "secret".to_string());
 
-    app.data.decoder.encoded.input = Input::new("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.he0ErCNloe4J7Id0Ry2SEDg09lKkZkfsRiGsdX_vgEg".to_string());
     // test first render
     app.on_tick();
 

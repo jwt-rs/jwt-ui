@@ -137,7 +137,10 @@ fn render_text_area_widget<B: Backend>(
 
 #[cfg(test)]
 mod tests {
-  use crate::ui::utils::{COLOR_CYAN, COLOR_WHITE, COLOR_YELLOW};
+  use crate::{
+    app::RouteId,
+    ui::utils::{COLOR_CYAN, COLOR_WHITE, COLOR_YELLOW},
+  };
 
   use super::*;
   use ratatui::{
@@ -149,11 +152,19 @@ mod tests {
 
   #[test]
   fn test_draw_encoder() {
-    let mut app = App::new(
-        250,
-        Some("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o".into()), 
-        "secret".into()
-    );
+    let mut app = App::new(250, None, "secret".into());
+
+    app.data.encoder.payload.input = vec![
+      "{",
+      r#"  "sub": "1234567890","#,
+      r#"  "name": "John Doe","#,
+      r#"  "admin": true,"#,
+      r#"  "iat": 1516239022"#,
+      "}",
+    ]
+    .into();
+
+    app.push_navigation_stack(RouteId::Encoder, ActiveBlock::EncoderHeader);
 
     app.on_tick();
 
@@ -167,24 +178,24 @@ mod tests {
       .unwrap();
 
     let mut expected = Buffer::with_lines(vec![
-      r#"┌ Encoded Token (Press <e> to edit | <c> to copy)┐┌ Header: Algorithm & Token Type ────────────────┐"#,
-      r#"│┌──────────────────────────────────────────────┐││{                                               │"#,
-      r#"││eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiO│││  "typ": "JWT",                                 │"#,
-      r#"││iIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF│││  "alg": "HS256"                                │"#,
-      r#"││0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzW│││}                                               │"#,
-      r#"││XcXNrz0ogtVhfEd2o                             │││                                                │"#,
+      r#"┌ Header: Algorithm & Token Type (<e> edit | <c> ┐┌ Verify Signature ──────────────────────────────┐"#,
+      r#"│┌──────────────────────────────────────────────┐││Prepend 'b64:' for base64 encoded secret. Prepen│"#,
+      r#"││{                                             │││┌──────────────────────────────────────────────┐│"#,
+      r#"││  "alg": "HS256",                             ││││secret                                        ││"#,
+      r#"││  "typ": "JWT"                                │││└──────────────────────────────────────────────┘│"#,
+      r#"││}                                             ││└────────────────────────────────────────────────┘"#,
+      r#"│└──────────────────────────────────────────────┘│┌ Encoded Token ─────────────────────────────────┐"#,
+      r#"└────────────────────────────────────────────────┘│eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhZG1pbiI│"#,
+      r#"┌ Payload: Claims ───────────────────────────────┐│6dHJ1ZSwiaWF0IjoxNTE2MjM5MDIyLCJuYW1lIjoiSm9obiB│"#,
+      r#"│┌──────────────────────────────────────────────┐││Eb2UiLCJzdWIiOiIxMjM0NTY3ODkwIn0.g7Ern-srhIi_7ZX│"#,
+      r#"││{                                             │││qrl6uyey7xxWJjr-LTn4p2Nv-DOY                    │"#,
+      r#"││  "sub": "1234567890",                        │││                                                │"#,
+      r#"││  "name": "John Doe",                         │││                                                │"#,
+      r#"││  "admin": true,                              │││                                                │"#,
+      r#"││  "iat": 1516239022                           │││                                                │"#,
+      r#"││}                                             │││                                                │"#,
       r#"││                                              │││                                                │"#,
-      r#"││                                              ││└────────────────────────────────────────────────┘"#,
-      r#"││                                              ││┌ Payload: Claims ───────────────────────────────┐"#,
-      r#"││                                              │││{                                               │"#,
-      r#"││                                              │││  "iat": 1516239022,                            │"#,
-      r#"││                                              │││  "name": "John Doe",                           │"#,
-      r#"│└──────────────────────────────────────────────┘││  "sub": "1234567890"                           │"#,
-      r#"└────────────────────────────────────────────────┘│}                                               │"#,
-      r#"┌ Verify Signature ──────────────────────────────┐│                                                │"#,
-      r#"│Prepend 'b64:' for base64 encoded secret. Prepen││                                                │"#,
-      r#"│┌──────────────────────────────────────────────┐││                                                │"#,
-      r#"││secret                                        │││                                                │"#,
+      r#"││                                              │││                                                │"#,
       r#"│└──────────────────────────────────────────────┘││                                                │"#,
       r#"└────────────────────────────────────────────────┘└────────────────────────────────────────────────┘"#,
     ]);
@@ -193,31 +204,34 @@ mod tests {
     for row in 0..=19 {
       for col in 0..=99 {
         match (col, row) {
-          (1..=15, 0) => {
+          (2, 2 | 10) => {
+            expected.get_mut(col, row).set_style(
+              Style::default()
+                .fg(COLOR_WHITE)
+                .add_modifier(Modifier::REVERSED),
+            );
+          }
+          (1..=32, 0) => {
             expected.get_mut(col, row).set_style(
               Style::default()
                 .fg(COLOR_YELLOW)
                 .add_modifier(Modifier::BOLD),
             );
           }
-          (51..=82, 0) | (51..=67, 8) | (1..=18, 14) => {
+          (51..=68, 0) | (51..=65, 6) | (1..=17, 8) => {
             expected.get_mut(col, row).set_style(
               Style::default()
                 .fg(COLOR_WHITE)
                 .add_modifier(Modifier::BOLD),
             );
           }
-          (0 | 16..=49, 0) | (0..=49, 13) | (0 | 49, 1..=13 | 20..=99) => {
+          (0 | 16..=49, 0) | (0 | 49, 1..=7 | 20..=99) | (0..=49, 7) => {
             expected
               .get_mut(col, row)
               .set_style(Style::default().fg(COLOR_YELLOW));
           }
 
-          (51, 1 | 4 | 9 | 11 | 13)
-          | (51..=65, 2)
-          | (51..=66, 3)
-          | (51..=70, 10 | 12)
-          | (52..=71, 11 | 12) => {
+          (51, 9) | (51..=98, 7..=9) | (51..=78, 10) => {
             expected
               .get_mut(col, row)
               .set_style(Style::default().fg(COLOR_CYAN));

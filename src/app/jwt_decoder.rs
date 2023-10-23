@@ -1,19 +1,17 @@
 use std::collections::{BTreeMap, HashSet};
 
-use base64::{engine::general_purpose::STANDARD as base64_engine, Engine as _};
 use chrono::{TimeZone, Utc};
 use jsonwebtoken::{decode, errors::Error, Algorithm, DecodingKey, Header, TokenData, Validation};
 use serde_derive::{Deserialize, Serialize};
 use serde_json::{to_string_pretty, Value};
-use tui_input::Input;
 
 use super::{
-  jwt_utils::{JWTError, JWTResult},
+  jwt_utils::{get_secret, JWTResult},
   models::{ScrollableTxt, TabRoute, TabsState},
-  utils::slurp_file,
-  ActiveBlock, App, InputMode, Route, RouteId, TextInput,
+  ActiveBlock, App, Route, RouteId, TextInput,
 };
 
+#[derive(Default)]
 pub struct Decoder {
   pub encoded: TextInput,
   pub header: ScrollableTxt,
@@ -24,21 +22,14 @@ pub struct Decoder {
   pub utc_dates: bool,
   pub ignore_exp: bool,
   /// do not manipulate directly, use `set_decoded` instead
-  pub _decoded: Option<TokenData<Payload>>,
+  decoded: Option<TokenData<Payload>>,
 }
 
-impl Default for Decoder {
-  fn default() -> Self {
+impl Decoder {
+  pub fn new(token: Option<String>, secret: String) -> Self {
     Self {
-      encoded: TextInput {
-        input: Input::default(),
-        input_mode: InputMode::Normal,
-      },
-      header: Default::default(),
-      payload: Default::default(),
-      secret: Default::default(),
-      signature_verified: false,
-      utc_dates: false,
+      encoded: TextInput::new(token.unwrap_or_default()),
+      secret: TextInput::new(secret),
       ignore_exp: true,
       blocks: TabsState::new(vec![
         TabRoute {
@@ -70,18 +61,18 @@ impl Default for Decoder {
           },
         },
       ]),
-      _decoded: Default::default(),
+      ..Decoder::default()
     }
   }
-}
 
-impl Decoder {
   pub fn is_decoded(&self) -> bool {
-    self._decoded.is_some()
+    self.decoded.is_some()
   }
+
   pub fn get_decoded(&self) -> Option<TokenData<Payload>> {
-    self._decoded.clone()
+    self.decoded.clone()
   }
+
   pub fn set_decoded(&mut self, decoded: Option<TokenData<Payload>>) {
     match decoded.as_ref() {
       Some(payload) => {
@@ -93,7 +84,7 @@ impl Decoder {
         self.payload = ScrollableTxt::default();
       }
     }
-    self._decoded = decoded;
+    self.decoded = decoded;
   }
 }
 
@@ -122,7 +113,7 @@ struct TokenOutput {
 }
 
 impl TokenOutput {
-  pub fn new(data: TokenData<Payload>) -> Self {
+  fn new(data: TokenData<Payload>) -> Self {
     TokenOutput {
       header: data.header,
       payload: data.claims,
@@ -145,8 +136,9 @@ struct DecodeArgs {
 /// decode the given JWT token and verify its signature if secret is provided
 pub fn decode_jwt_token(app: &mut App) {
   let token = app.data.decoder.encoded.input.value();
-  let secret = app.data.decoder.secret.input.value();
   if !token.is_empty() {
+    let secret = app.data.decoder.secret.input.value();
+
     let out = decode_token(&DecodeArgs {
       jwt: token.into(),
       secret: secret.into(),
@@ -246,68 +238,26 @@ fn decode_token(
 }
 
 fn decoding_key_from_secret(alg: &Algorithm, secret_string: &str) -> JWTResult<DecodingKey> {
+  let secret = get_secret(alg, secret_string)?;
   match alg {
-    Algorithm::HS256 | Algorithm::HS384 | Algorithm::HS512 => {
-      if secret_string.starts_with('@') {
-        let secret = slurp_file(&secret_string.chars().skip(1).collect::<String>());
-        Ok(DecodingKey::from_secret(&secret))
-      } else if secret_string.starts_with("b64:") {
-        Ok(DecodingKey::from_secret(
-          &base64_engine
-            .decode(secret_string.chars().skip(4).collect::<String>())
-            .unwrap(),
-        ))
-      } else {
-        Ok(DecodingKey::from_secret(secret_string.as_bytes()))
-      }
-    }
+    Algorithm::HS256 | Algorithm::HS384 | Algorithm::HS512 => Ok(DecodingKey::from_secret(&secret)),
     Algorithm::RS256
     | Algorithm::RS384
     | Algorithm::RS512
     | Algorithm::PS256
     | Algorithm::PS384
-    | Algorithm::PS512 => {
-      if !&secret_string.starts_with('@') {
-        return Err(JWTError::Internal(format!(
-          "Secret for {alg:?} must be a file path starting with @",
-        )));
-      }
-
-      let secret = slurp_file(&secret_string.chars().skip(1).collect::<String>());
-
-      match secret_string.ends_with(".pem") {
-        true => DecodingKey::from_rsa_pem(&secret).map_err(Error::into),
-        false => Ok(DecodingKey::from_rsa_der(&secret)),
-      }
-    }
-    Algorithm::ES256 | Algorithm::ES384 => {
-      if !&secret_string.starts_with('@') {
-        return Err(JWTError::Internal(format!(
-          "Secret for {alg:?} must be a file path starting with @",
-        )));
-      }
-
-      let secret = slurp_file(&secret_string.chars().skip(1).collect::<String>());
-
-      match secret_string.ends_with(".pem") {
-        true => DecodingKey::from_ec_pem(&secret).map_err(Error::into),
-        false => Ok(DecodingKey::from_ec_der(&secret)),
-      }
-    }
-    Algorithm::EdDSA => {
-      if !&secret_string.starts_with('@') {
-        return Err(JWTError::Internal(format!(
-          "Secret for {alg:?} must be a file path starting with @",
-        )));
-      }
-
-      let secret = slurp_file(&secret_string.chars().skip(1).collect::<String>());
-
-      match secret_string.ends_with(".pem") {
-        true => DecodingKey::from_ed_pem(&secret).map_err(Error::into),
-        false => Ok(DecodingKey::from_ed_der(&secret)),
-      }
-    }
+    | Algorithm::PS512 => match secret_string.ends_with(".pem") {
+      true => DecodingKey::from_rsa_pem(&secret).map_err(Error::into),
+      false => Ok(DecodingKey::from_rsa_der(&secret)),
+    },
+    Algorithm::ES256 | Algorithm::ES384 => match secret_string.ends_with(".pem") {
+      true => DecodingKey::from_ec_pem(&secret).map_err(Error::into),
+      false => Ok(DecodingKey::from_ec_der(&secret)),
+    },
+    Algorithm::EdDSA => match secret_string.ends_with(".pem") {
+      true => DecodingKey::from_ed_pem(&secret).map_err(Error::into),
+      false => Ok(DecodingKey::from_ed_der(&secret)),
+    },
   }
 }
 
@@ -555,7 +505,7 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "Unable to read file")]
+  #[should_panic(expected = "No such file or directory (os error 2)")]
   fn test_decoding_key_from_secret_nonexistent_file() {
     let secret_file_name = "nonexistent.txt";
     let alg = Algorithm::HS256;

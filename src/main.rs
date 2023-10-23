@@ -26,7 +26,7 @@ use ratatui::{
 
 use crate::app::jwt_decoder::decode_jwt_token;
 
-/// JWT CLI
+/// JWT TUI
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None, before_help = BANNER)]
 pub struct Cli {

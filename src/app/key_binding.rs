@@ -39,6 +39,7 @@ generate_keybindings! {
   toggle_utc_dates,
   toggle_ignore_exp,
   toggle_input_edit,
+  clear_input,
   delete_prev_char,
   go_to_prev_char,
   go_to_prev_word,
@@ -179,13 +180,19 @@ pub const DEFAULT_KEYBINDING: KeyBindings = KeyBindings {
   toggle_ignore_exp: KeyBinding {
     key: Key::Char('i'),
     alt: None,
-    desc: "Toggle ignoring exp claim from validation (default ignored)",
+    desc: "Toggle ignoring exp claim from validation",
     context: HContext::Decoder,
   },
   toggle_input_edit: KeyBinding {
     key: Key::Char('e'),
     alt: None,
     desc: "Enable text input edit mode",
+    context: HContext::Editable,
+  },
+  clear_input: KeyBinding {
+    key: Key::Ctrl('d'),
+    alt: Some(Key::CtrlK(KeyCode::Backspace)),
+    desc: "Clear input",
     context: HContext::Editable,
   },
   delete_prev_char: KeyBinding {

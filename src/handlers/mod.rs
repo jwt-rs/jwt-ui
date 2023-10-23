@@ -1,5 +1,6 @@
 use crossterm::event::{Event, KeyEvent, MouseEvent, MouseEventKind};
-use tui_input::backend::crossterm::EventHandler;
+use tui_input::{backend::crossterm::EventHandler, Input};
+use tui_textarea::TextArea;
 
 use crate::{
   app::{
@@ -127,6 +128,10 @@ fn is_text_editing(input: &mut TextInput, key: Key, key_event: KeyEvent) -> bool
   if input.input_mode == InputMode::Editing {
     if key == DEFAULT_KEYBINDING.esc.key {
       input.input_mode = InputMode::Normal;
+    } else if key == DEFAULT_KEYBINDING.clear_input.key
+      || key == DEFAULT_KEYBINDING.clear_input.alt.unwrap()
+    {
+      input.input = Input::default();
     } else {
       input.input.handle_event(&Event::Key(key_event));
     }
@@ -140,6 +145,10 @@ fn is_text_area_editing(input: &mut TextAreaInput<'_>, key: Key, key_event: KeyE
   if input.input_mode == InputMode::Editing {
     if key == DEFAULT_KEYBINDING.esc.key {
       input.input_mode = InputMode::Normal;
+    } else if key == DEFAULT_KEYBINDING.clear_input.key
+      || key == DEFAULT_KEYBINDING.clear_input.alt.unwrap()
+    {
+      input.input = TextArea::default();
     } else {
       input.input.input(Event::Key(key_event));
     }
@@ -246,9 +255,8 @@ fn inverse_dir(up: bool, is_mouse: bool) -> bool {
 
 #[cfg(test)]
 mod tests {
-  use crossterm::event::KeyCode;
-
   use crate::app::{models::ScrollableTxt, Route};
+  use crossterm::event::{KeyCode, KeyModifiers};
 
   use super::*;
 
@@ -304,7 +312,7 @@ mod tests {
 
   #[test]
   fn test_handle_key_events_for_textarea_editing() {
-    let mut app = App::default();
+    let mut app = App::new(250, Some("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o".to_string()), "secret".to_string());
 
     app.data.encoder.header.input_mode = InputMode::Editing;
 
@@ -317,8 +325,8 @@ mod tests {
     handle_key_events(Key::from(key_evt), key_evt, &mut app);
     assert_eq!(app.data.encoder.header.input_mode, InputMode::Editing);
     assert_eq!(
-      app.data.encoder.header.input.lines().join("sep"),
-      String::from("e")
+      app.data.encoder.header.input.lines().join(""),
+      String::from("e{  \"alg\": \"HS256\",  \"typ\": \"JWT\"}")
     );
 
     let key_evt = KeyEvent::from(KeyCode::Esc);
@@ -328,6 +336,14 @@ mod tests {
     let key_evt = KeyEvent::from(KeyCode::Char('e'));
     handle_key_events(Key::from(key_evt), key_evt, &mut app);
     assert_eq!(app.data.encoder.header.input_mode, InputMode::Editing);
+
+    let key_evt = KeyEvent::new(KeyCode::Char('d'), KeyModifiers::CONTROL);
+    handle_key_events(Key::from(key_evt), key_evt, &mut app);
+    assert_eq!(app.data.encoder.header.input_mode, InputMode::Editing);
+    assert_eq!(
+      app.data.encoder.header.input.lines().join(""),
+      String::from("")
+    );
   }
 
   #[test]

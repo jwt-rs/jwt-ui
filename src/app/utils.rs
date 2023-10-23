@@ -1,7 +1,7 @@
-use std::fs;
+use std::{fs, io};
 
-pub fn slurp_file(file_name: &str) -> Vec<u8> {
-  fs::read(file_name).unwrap_or_else(|_| panic!("Unable to read file {file_name}"))
+pub fn slurp_file(file_name: &str) -> io::Result<Vec<u8>> {
+  fs::read(file_name)
 }
 
 #[cfg(test)]
@@ -18,7 +18,7 @@ mod tests {
     let mut file = File::create(file_name).unwrap();
     file.write_all(content).unwrap();
 
-    let result = slurp_file(file_name);
+    let result = slurp_file(file_name).unwrap();
 
     assert_eq!(result, content);
 
@@ -26,10 +26,10 @@ mod tests {
   }
 
   #[test]
-  #[should_panic(expected = "Unable to read file")]
+  #[should_panic(expected = "No such file or directory")]
   fn test_slurp_file_nonexistent() {
     let file_name = "nonexistent.txt";
 
-    slurp_file(file_name);
+    slurp_file(file_name).unwrap();
   }
 }

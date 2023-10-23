@@ -95,12 +95,7 @@ pub fn style_logo(light: bool) -> Style {
 pub fn style_failure(light: bool) -> Style {
   *theme_styles(light).get(&Styles::Failure).unwrap()
 }
-// pub fn style_warning(light: bool) -> Style {
-//   *theme_styles(light).get(&Styles::Warning).unwrap()
-// }
-// pub fn style_success(light: bool) -> Style {
-//   *theme_styles(light).get(&Styles::Success).unwrap()
-// }
+
 pub fn style_primary(light: bool) -> Style {
   *theme_styles(light).get(&Styles::Primary).unwrap()
 }
@@ -231,8 +226,8 @@ pub fn render_input_widget<B: Backend>(
 pub fn get_hint(input_mode: &InputMode, is_active: bool) -> &str {
   if is_active {
     match input_mode {
-      InputMode::Normal => "(Press <e> to edit | <c> to copy) ",
-      InputMode::Editing => "(Press <esc> to stop editing) ",
+      InputMode::Normal => "(<e> edit | <c> copy) ",
+      InputMode::Editing => "(<esc> stop editing | <ctrl+d> clear) ",
     }
   } else {
     ""
@@ -257,7 +252,7 @@ pub fn get_selectable_block(
   let title_hint = if let Some(im) = input_mode {
     get_hint(im, is_active)
   } else if is_active {
-    "(Press <c> to copy) "
+    "(<c> copy) "
   } else {
     ""
   };

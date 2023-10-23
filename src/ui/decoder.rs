@@ -160,7 +160,7 @@ mod tests {
       .unwrap();
 
     let mut expected = Buffer::with_lines(vec![
-      r#"┌ Encoded Token (Press <e> to edit | <c> to copy)┐┌ Header: Algorithm & Token Type ────────────────┐"#,
+      r#"┌ Encoded Token (<e> edit | <c> copy) ───────────┐┌ Header: Algorithm & Token Type ────────────────┐"#,
       r#"│┌──────────────────────────────────────────────┐││{                                               │"#,
       r#"││eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiO│││  "typ": "JWT",                                 │"#,
       r#"││iIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF│││  "alg": "HS256"                                │"#,

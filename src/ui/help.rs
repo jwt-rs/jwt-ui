@@ -20,7 +20,7 @@ pub fn draw_help<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
   // Create a one-column table to avoid flickering due to non-determinism when
   // resolving constraints on widths of table columns.
   let format_row =
-    |r: &Vec<String>| -> Vec<String> { vec![format!("{:50}{:40}{:20}", r[0], r[1], r[2])] };
+    |r: &Vec<String>| -> Vec<String> { vec![format!("{:50}{:50}{:20}", r[0], r[1], r[2])] };
 
   let header = ["Key", "Action", "Context"];
   let header = format_row(&header.iter().map(|s| s.to_string()).collect());
@@ -66,7 +66,7 @@ mod tests {
 
   #[test]
   fn test_draw_help() {
-    let backend = TestBackend::new(100, 7);
+    let backend = TestBackend::new(110, 7);
     let mut terminal = Terminal::new(backend).unwrap();
 
     terminal
@@ -78,19 +78,19 @@ mod tests {
       .unwrap();
 
     let mut expected = Buffer::with_lines(vec![
-        "┌ Help | close <esc> ──────────────────────────────────────────────────────────────────────────────┐",
-        "│   Key                                               Action                                  Conte│",
-        "│=> <Ctrl+c> | <q>                                    Quit                                    Gener│",
-        "│   <Esc>                                             Close child page/Go back/Stop editing   Gener│",
-        "│   <?>                                               Help page                               Gener│",
-        "│   <Ctrl+r>                                          Refresh UI                              Gener│",
-        "└──────────────────────────────────────────────────────────────────────────────────────────────────┘",
+        "┌ Help | close <esc> ────────────────────────────────────────────────────────────────────────────────────────┐",
+        "│   Key                                               Action                                            Conte│",
+        "│=> <Ctrl+c> | <q>                                    Quit                                              Gener│",
+        "│   <Esc>                                             Close child page/Go back/Stop editing             Gener│",
+        "│   <?>                                               Help page                                         Gener│",
+        "│   <Ctrl+r>                                          Refresh UI                                        Gener│",
+        "└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘",
       ]);
     // set row styles
     // First row heading style
-    for col in 0..=99 {
+    for col in 0..=109 {
       match col {
-        0 | 7..=99 => {
+        0 | 7..=109 => {
           expected
             .get_mut(col, 0)
             .set_style(Style::default().fg(COLOR_YELLOW));
@@ -113,16 +113,16 @@ mod tests {
     }
 
     // second row table headings
-    for col in 0..=99 {
+    for col in 0..=109 {
       expected
         .get_mut(col, 1)
         .set_style(Style::default().fg(COLOR_YELLOW));
     }
 
     // first table data row style
-    for col in 0..=99 {
+    for col in 0..=109 {
       match col {
-        1..=98 => {
+        1..=108 => {
           expected.get_mut(col, 2).set_style(
             Style::default()
               .fg(COLOR_CYAN)
@@ -139,9 +139,9 @@ mod tests {
 
     // rows
     for row in 3..=5 {
-      for col in 0..=99 {
+      for col in 0..=109 {
         match col {
-          1..=98 => {
+          1..=108 => {
             expected
               .get_mut(col, row)
               .set_style(Style::default().fg(COLOR_CYAN));
@@ -156,7 +156,7 @@ mod tests {
     }
 
     // last row
-    for col in 0..=99 {
+    for col in 0..=109 {
       expected
         .get_mut(col, 6)
         .set_style(Style::default().fg(COLOR_YELLOW));
