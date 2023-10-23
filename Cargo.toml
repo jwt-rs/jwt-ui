@@ -1,14 +1,14 @@
 [package]
-name = "jwt-cli"
+name = "jwt-tui"
 version = "0.0.1"
 authors = ["Deepu K Sasidharan <d4udts@gmail.com>"]
 description = """
-A command line UI for decoding JSON Web Tokens
+A Terminal UI for decoding/encoding JSON Web Tokens
 """
-documentation = "https://github.com/jwt-rs/jwt-cli"
+documentation = "https://github.com/jwt-rs/jwt-tui"
 keywords = ["jwt", "oidc", "oauth", "oauth2"]
-repository = "https://github.com/jwt-rs/jwt-cli"
-homepage = "https://github.com/jwt-rs/jwt-cli"
+repository = "https://github.com/jwt-rs/jwt-tui"
+homepage = "https://github.com/jwt-rs/jwt-tui"
 readme = "README.md"
 license = "MIT"
 exclude = [
@@ -26,28 +26,28 @@ edition = "2021"
 [badges]
 
 [dependencies]
-crossterm = "0.27.0"
+crossterm = "0.27"
 ratatui = { version = "0.23.0", default-features = false, features = [
     'crossterm',
 ] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_derive = "1"
-clap = { version = "4.3.24", features = [
+clap = { version = "4.4", features = [
     "help",
     "usage",
     "error-context",
     "derive",
 ] }
 tui-input = "0.8"
-tui-textarea = { version = "0.2.2", default-features = false, features = [
+tui-textarea = { version = "0.2", default-features = false, features = [
     "ratatui-crossterm",
 ] }
 backtrace = "0.3"
 human-panic = "1.1"
-base64 = "0.21.4"
-jsonwebtoken = "9.0.0"
-chrono = "0.4.31"
+base64 = "0.21"
+jsonwebtoken = "9.1"
+chrono = "0.4"
 
 # XCB is a PITA to compile for ARM so disabling the copy feature on ARM for now
 [target.'cfg(target_arch = "x86_64")'.dependencies]

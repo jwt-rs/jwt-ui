@@ -1,5 +1,5 @@
 VERSION  := latest
-IMG_NAME := deepu105/jwt-cli
+IMG_NAME := deepu105/jwt-tui
 IMAGE    := ${IMG_NAME}:${VERSION}
 
 default: run
