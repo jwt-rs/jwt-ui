@@ -118,7 +118,7 @@ impl Default for App {
   fn default() -> Self {
     App {
       navigation_stack: vec![DEFAULT_ROUTE],
-      title: " JWT TUI - A command line UI for decoding/encoding JSON Web Tokens ",
+      title: " JWT TUI - A Terminal UI for decoding/encoding JSON Web Tokens ",
       should_quit: false,
       main_tabs: TabsState::new(vec![
         TabRoute {
