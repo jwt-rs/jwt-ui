@@ -44,7 +44,7 @@ tui-textarea = { version = "0.2", default-features = false, features = [
     "ratatui-crossterm",
 ] }
 backtrace = "0.3"
-human-panic = "1.1"
+human-panic = "1.2"
 base64 = "0.21"
 jsonwebtoken = "9.1"
 chrono = "0.4"
