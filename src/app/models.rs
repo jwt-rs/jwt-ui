@@ -153,9 +153,8 @@ impl Scrollable for ScrollableTxt {
 #[cfg(test)]
 mod tests {
 
-  use crate::app::RouteId;
-
   use super::*;
+  use crate::app::RouteId;
 
   #[test]
   fn test_stateful_table() {

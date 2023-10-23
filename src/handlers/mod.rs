@@ -255,10 +255,10 @@ fn inverse_dir(up: bool, is_mouse: bool) -> bool {
 
 #[cfg(test)]
 mod tests {
-  use crate::app::{models::ScrollableTxt, Route};
   use crossterm::event::{KeyCode, KeyModifiers};
 
   use super::*;
+  use crate::app::{models::ScrollableTxt, Route};
 
   #[test]
   fn test_inverse_dir() {

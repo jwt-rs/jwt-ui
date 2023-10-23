@@ -137,17 +137,17 @@ fn render_text_area_widget<B: Backend>(
 
 #[cfg(test)]
 mod tests {
-  use crate::{
-    app::RouteId,
-    ui::utils::{COLOR_CYAN, COLOR_WHITE, COLOR_YELLOW},
-  };
-
-  use super::*;
   use ratatui::{
     backend::TestBackend,
     prelude::Buffer,
     style::{Modifier, Style},
     Terminal,
+  };
+
+  use super::*;
+  use crate::{
+    app::RouteId,
+    ui::utils::{COLOR_CYAN, COLOR_WHITE, COLOR_YELLOW},
   };
 
   #[test]

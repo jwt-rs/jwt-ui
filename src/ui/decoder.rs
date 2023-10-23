@@ -130,15 +130,15 @@ fn draw_payload_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 
 #[cfg(test)]
 mod tests {
-  use crate::ui::utils::{COLOR_CYAN, COLOR_WHITE, COLOR_YELLOW};
-
-  use super::*;
   use ratatui::{
     backend::TestBackend,
     prelude::Buffer,
     style::{Modifier, Style},
     Terminal,
   };
+
+  use super::*;
+  use crate::ui::utils::{COLOR_CYAN, COLOR_WHITE, COLOR_YELLOW};
 
   #[test]
   fn test_draw_decoder() {
