@@ -2,14 +2,14 @@
 
 # The install script is licensed under the CC-0 1.0 license.
 
-# See https://github.com/jwt-rs/jwt-tui/blob/main/LICENSE for more details.
+# See https://github.com/jwt-rs/jwt-ui/blob/main/LICENSE for more details.
 #
 # To run this script execute:
-#   `curl https://raw.githubusercontent.com/jwt-rs/jwt-tui/main/deployment/getLatest.sh | sh`
+#   `curl https://raw.githubusercontent.com/jwt-rs/jwt-ui/main/deployment/getLatest.sh | sh`
 
-GITHUB_REPO="jwt-tui"
+GITHUB_REPO="jwt-ui"
 GITHUB_USER="jwt-rs"
-EXE_FILENAME="jwt-tui"
+EXE_FILENAME="jwt-ui"
 EXE_DEST_DIR="/usr/local/bin"
 
 bye() {

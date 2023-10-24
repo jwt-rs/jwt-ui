@@ -1,22 +1,22 @@
 {
-  "homepage": "https://github.com/jwt-rs/jwt-tui",
+  "homepage": "https://github.com/jwt-rs/jwt-ui",
   "description": "A fast and simple dashboard for Kubernetes",
   "version": "$version64",
   "license": "MIT",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/jwt-rs/jwt-tui/releases/download/v$version64/jwt-tui-windows.tar.gz",
+      "url": "https://github.com/jwt-rs/jwt-ui/releases/download/v$version64/jwt-ui-windows.tar.gz",
       "hash": "$hash_64"
     }
   },
-  "bin": "jwt-tui.exe",
+  "bin": "jwt-ui.exe",
   "checkver": "github",
   "autoupdate": {
     "architecture": {
       "64bit": {
-        "url": "https://github.com/jwt-rs/jwt-tui/releases/download/v$version/jwt-tui-windows.tar.gz",
+        "url": "https://github.com/jwt-rs/jwt-ui/releases/download/v$version/jwt-ui-windows.tar.gz",
         "hash": {
-          "url": "https://github.com/jwt-rs/jwt-tui/releases/download/v$version/jwt-tui-windows.sha256",
+          "url": "https://github.com/jwt-rs/jwt-ui/releases/download/v$version/jwt-ui-windows.sha256",
           "regex": "$sha256"
         }
       }

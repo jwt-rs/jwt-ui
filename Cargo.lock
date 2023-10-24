@@ -475,7 +475,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "jwt-tui"
+name = "jwt-ui"
 version = "0.0.1"
 dependencies = [
  "backtrace",

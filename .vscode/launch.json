@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Windows - Debug executable 'jwt-tui'",
+            "name": "Windows - Debug executable 'jwt-ui'",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}\\target\\debug\\jwt-tui.exe",
+            "program": "${workspaceFolder}\\target\\debug\\jwt-ui.exe",
             "args": [],
             "sourceLanguages": [ "rust" ],
             "cwd": "${workspaceFolder}"
@@ -16,15 +16,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'jwt-tui'",
+            "name": "Debug executable 'jwt-ui'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=jwtui",
-                    "--package=jwt-tui"
+                    "--bin=jwt-ui",
+                    "--package=jwt-ui"
                 ],
                 "filter": {
-                    "name": "jwt-tui",
+                    "name": "jwt-ui",
                     "kind": "bin"
                 }
             },
@@ -34,16 +34,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'jwt-tui'",
+            "name": "Debug unit tests in executable 'jwt-ui'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=jwt-tui",
-                    "--package=jwt-tui"
+                    "--bin=jwt-ui",
+                    "--package=jwt-ui"
                 ],
                 "filter": {
-                    "name": "jwt-tui",
+                    "name": "jwt-ui",
                     "kind": "bin"
                 }
             },

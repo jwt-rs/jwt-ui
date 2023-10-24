@@ -1,8 +1,8 @@
 $ErrorActionPreference = 'Stop';
 
-$PackageName = 'jwt-tui'
+$PackageName = 'jwt-ui'
 $toolsDir    = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
-$url64       = 'https://github.com/jwt-rs/jwt-tui/releases/download/v$version/jwt-tui-windows.tar.gz'
+$url64       = 'https://github.com/jwt-rs/jwt-ui/releases/download/v$version/jwt-ui-windows.tar.gz'
 $checksum64  = '$hash_64'
 
 $packageArgs = @{
