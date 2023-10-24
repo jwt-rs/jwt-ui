@@ -1,4 +1,4 @@
-# JWT TUI - A Terminal UI for decoding/encoding JSON Web Tokens
+# JWT UI - A Terminal UI for decoding/encoding JSON Web Tokens
 
 ![ci](https://github.com/jwt-rs/jwt-ui/actions/workflows/ci.yml/badge.svg)
 ![cd](https://github.com/jwt-rs/jwt-ui/actions/workflows/cd.yml/badge.svg)
@@ -20,14 +20,14 @@ A terminal UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](https:/
 
 ## Installation
 
-### Homebrew (Mac & Linux)
+<!-- ### Homebrew (Mac & Linux)
 
 ```bash
 brew tap jwt-rs/jwt-ui
 brew install jwt-ui
 
 # If you need to be more specific, use:
-brew install jwt-rs/jwt-cli/jwt-ui
+brew install jwt-rs/jwt-ui/jwt-ui
 ```
 
 To upgrade
@@ -63,7 +63,7 @@ Binaries for macOS, Linux and Windows are available on the [releases](https://gi
 1. For Windows:
    1. Use 7-Zip or TarTool to unpack the tar file.
    2. Run the executable file `jwt-ui.exe`
-
+ -->
 ### Cargo
 
 If you have Cargo installed then you install jwt-ui from crates.io
@@ -85,17 +85,21 @@ jwt-ui
 
 #or
 
-jwt-ui <jwt-token>
+jwt-ui [OPTIONS] [TOKEN]
 ```
 
 Press `?` while running the app to see keybindings
 
-## FLAGS:
+Arguments:
+  [TOKEN]  JWT token to decode [mandatory for stdout mode, optional for TUI mode]
 
-- `-h, --help`: Prints help information
-- `-V, --version`: Prints version information
-- `-t, --tick-rate <tick-rate>`: Set the tick rate (milliseconds): the lower the number the higher the FPS.
-- `-s, --stdout`: Raw mode. Disables TUI and prints output to stdout.
+Options:
+  `-s, --stdout`                 whether the CLI should run in TUI mode or just print to stdout
+  `-j, --json`                   whether stdout should be formatted as JSON
+  `-t, --tick-rate <TICK_RATE>`  Set the tick rate (milliseconds): the lower the number the higher the FPS. Must be less than 1000 [default: 250]
+  `-S, --secret <SECRET>`        secret for validating the JWT [default: ]
+  `-h, --help`                   Print help
+  `-V, --version`                Print version
 
 ## Limitations/Known issues
 
@@ -110,17 +114,20 @@ Press `?` while running the app to see keybindings
 
 <!--![UI](screenshots/overview.png)-->
 
+### Encoder screen
+
+<!--![UI](screenshots/overview.png)-->
+
 ### Stdout
 
 <!--![UI](screenshots/overview.png)-->
 
 ## Libraries used
 
+- [jsonwebtoken](https://github.com/Keats/jsonwebtoken)
 - [ratatui](https://github.com/ratatui-org/ratatui)
 - [crossterm](https://github.com/crossterm-rs/crossterm)
 - [clap](https://github.com/clap-rs/clap)
-- [tokio](https://github.com/tokio-rs/tokio)
-- [duct.rs](https://github.com/oconnor663/duct.rs)
 - [rust-clipboard](https://github.com/aweinstock314/rust-clipboard)
 
 ## Licence

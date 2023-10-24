@@ -94,7 +94,7 @@ fn draw_app_header<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 
 fn draw_app_footer<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   // Footer text with correct styling
-  let text = format!("JWT TUI v{} with ♥ in Rust", env!("CARGO_PKG_VERSION"),);
+  let text = format!("JWT UI v{} with ♥ in Rust", env!("CARGO_PKG_VERSION"),);
   let mut text = Text::from(text);
   text.patch_style(style_logo(app.light_theme));
 
