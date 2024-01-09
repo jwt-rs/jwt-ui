@@ -225,7 +225,7 @@ mod tests {
                 .add_modifier(Modifier::BOLD),
             );
           }
-          (0 | 16..=49, 0) | (0 | 49, 1..=7 | 20..=99) | (0..=49, 7) => {
+          (0 | 16..=49, 0) | (0 | 49, 1..=6 | 20..=99) | (0..=49, 7) => {
             expected
               .get_mut(col, row)
               .set_style(Style::default().fg(COLOR_YELLOW));
