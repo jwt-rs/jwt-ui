@@ -2,9 +2,12 @@
 
 ## Unreleased - 2023-XX-YY
 
-## [0.0.1] - 2023-10-01
+## [0.0.1] - 2024-01-10
 
-- Initial beta release
+- Initial release
+- Encoder
+- Decoder
+- stdout mode
 
 ---
 
