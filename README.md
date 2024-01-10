@@ -12,15 +12,17 @@
 
 [![Follow Deepu K Sasidharan (deepu105)](https://img.shields.io/twitter/follow/deepu105?label=Follow%20Deepu%20K%20Sasidharan%20%28deepu105%29&style=social)](https://twitter.com/intent/follow?screen_name=deepu105)
 
-<!--![logo](artwork/logo.png)-->
-
 A terminal UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](https://jwt.io/) and [jwt-cli](https://github.com/mike-engel/jwt-cli)
 
-<!-- ![UI](screenshots/ui.gif) -->
+![UI](screenshots/decoder.png)
+
+Crafted by
+
+<img src="artwork/Auth0byOkta_logo.svg" alt="Auth0 by Okta" style="width:120px;"/>
 
 ## Installation
 
-<!-- ### Homebrew (Mac & Linux)
+### Homebrew (Mac & Linux)
 
 ```bash
 brew tap jwt-rs/jwt-ui
@@ -59,14 +61,14 @@ Binaries for macOS, Linux and Windows are available on the [releases](https://gi
 1. Download the latest [binary](https://github.com/jwt-rs/jwt-ui/releases) for your OS.
 1. For Linux/macOS:
    1. `cd` to the file you just downloaded and run `tar -C /usr/local/bin -xzf downloaded-file-name`. Use sudo if required.
-   2. Run with `jwt-ui`
+   2. Run with `jwtui`
 1. For Windows:
    1. Use 7-Zip or TarTool to unpack the tar file.
-   2. Run the executable file `jwt-ui.exe`
- -->
+   2. Run the executable file `jwtui.exe`
+
 ### Cargo
 
-If you have Cargo installed then you install jwt-ui from crates.io
+If you have Cargo installed then you install JWT UI from crates.io
 
 ```bash
 cargo install jwt-ui
@@ -81,30 +83,31 @@ You can also clone the repo and run `cargo run` or `make` to build and run the a
 ## USAGE:
 
 ```bash
-jwt-ui
+jwtui
 
 #or
 
-jwt-ui [OPTIONS] [TOKEN]
+jwtui [OPTIONS] [TOKEN]
 ```
 
 Press `?` while running the app to see keybindings
 
 Arguments:
-  [TOKEN]  JWT token to decode [mandatory for stdout mode, optional for TUI mode]
+[TOKEN] JWT token to decode [mandatory for stdout mode, optional for TUI mode]
 
 Options:
-  `-s, --stdout`                 whether the CLI should run in TUI mode or just print to stdout
-  `-j, --json`                   whether stdout should be formatted as JSON
-  `-t, --tick-rate <TICK_RATE>`  Set the tick rate (milliseconds): the lower the number the higher the FPS. Must be less than 1000 [default: 250]
-  `-S, --secret <SECRET>`        secret for validating the JWT [default: ]
-  `-h, --help`                   Print help
-  `-V, --version`                Print version
+`-s, --stdout` whether the CLI should run in TUI mode or just print to stdout
+`-j, --json` whether stdout should be formatted as JSON
+`-t, --tick-rate <TICK_RATE>` Set the tick rate (milliseconds): the lower the number the higher the FPS. Must be less than 1000 [default: 250]
+`-S, --secret <SECRET>` secret for validating the JWT [default: ]
+`-h, --help` Print help
+`-V, --version` Print version
 
 ## Limitations/Known issues
 
 ## Features
 
+- Fully offline 
 - Dark/Light themes
 - Sensible keyboard shortcuts
 
@@ -112,15 +115,15 @@ Options:
 
 ### Decoder screen
 
-<!--![UI](screenshots/overview.png)-->
+![UI](screenshots/decoder.png)
 
 ### Encoder screen
 
-<!--![UI](screenshots/overview.png)-->
+![UI](screenshots/encoder.png)
 
 ### Stdout
 
-<!--![UI](screenshots/overview.png)-->
+![UI](screenshots/stdout.png)
 
 ## Libraries used
 

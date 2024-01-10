@@ -48,6 +48,16 @@ pub fn handle_key_events(key: Key, key_event: KeyEvent, app: &mut App) {
       {
         app.push_navigation_stack(RouteId::Help, ActiveBlock::Help);
       }
+      _ if key == DEFAULT_KEYBINDING.jump_to_decoder.key
+        && app.get_current_route().id != RouteId::Decoder =>
+      {
+        app.route_decoder();
+      }
+      _ if key == DEFAULT_KEYBINDING.jump_to_encoder.key
+        && app.get_current_route().id != RouteId::Encoder =>
+      {
+        app.route_encoder();
+      }
       _ if key == DEFAULT_KEYBINDING.cycle_main_views.key => app.cycle_main_routes(),
 
       _ if key == DEFAULT_KEYBINDING.toggle_input_edit.key => handle_edit_event(app),
@@ -270,7 +280,7 @@ mod tests {
   fn test_handle_key_events_for_editor() {
     let mut app = App::default();
 
-    app.route_home();
+    app.route_decoder();
     assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Normal);
 
     let key_evt = KeyEvent::from(KeyCode::Char('e'));
@@ -293,7 +303,7 @@ mod tests {
 
     app.data.decoder.encoded.input_mode = InputMode::Editing;
 
-    app.route_home();
+    app.route_decoder();
     assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Editing);
 
     let key_evt = KeyEvent::from(KeyCode::Char('e'));

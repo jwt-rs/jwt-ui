@@ -165,7 +165,7 @@ impl App {
   pub fn refresh(&mut self) {
     self.data.error = String::new();
     self.data = Data::default();
-    self.route_home();
+    self.route_decoder();
   }
 
   pub fn handle_error(&mut self, e: JWTError) {
@@ -202,8 +202,13 @@ impl App {
     self.push_navigation_route(route);
   }
 
-  pub fn route_home(&mut self) {
+  pub fn route_decoder(&mut self) {
     let route = self.main_tabs.set_index(0).route.clone();
+    self.push_navigation_route(route);
+  }
+
+  pub fn route_encoder(&mut self) {
+    let route = self.main_tabs.set_index(1).route.clone();
     self.push_navigation_route(route);
   }
 

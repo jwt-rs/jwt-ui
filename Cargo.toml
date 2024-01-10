@@ -61,7 +61,7 @@ features = ["user-hooks"]
 [[bin]]
 bench = false
 path = "src/main.rs"
-name = "jwt-ui"
+name = "jwtui"
 
 [profile.release]
 lto = true
