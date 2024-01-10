@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# The install script is licensed under the CC-0 1.0 license.
+# The install script is licensed under the MIT license.
 
 # See https://github.com/jwt-rs/jwt-ui/blob/main/LICENSE for more details.
 #
@@ -9,7 +9,7 @@
 
 GITHUB_REPO="jwt-ui"
 GITHUB_USER="jwt-rs"
-EXE_FILENAME="jwt-ui"
+EXE_FILENAME="jwtui"
 EXE_DEST_DIR="/usr/local/bin"
 
 bye() {

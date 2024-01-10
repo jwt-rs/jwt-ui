@@ -51,10 +51,10 @@ jobs:
           - { os: "windows-latest", target: "x86_64-pc-windows-msvc",       artifact_prefix: "windows"                                                }
           - { os: "ubuntu-latest",  target: "x86_64-unknown-linux-gnu",     artifact_prefix: "linux",                                                 }
           - { os: "ubuntu-latest",  target: "x86_64-unknown-linux-musl",    artifact_prefix: "linux-musl",                                            }
-          - { os: "ubuntu-latest",  target: "aarch64-unknown-linux-gnu",    artifact_prefix: "aarch64-gnu",  use-cross: true, test-bin: "--bin jwt-ui" }
-          - { os: "ubuntu-latest",  target: "aarch64-unknown-linux-musl",   artifact_prefix: "aarch64-musl", use-cross: true, test-bin: "--bin jwt-ui" }
-          - { os: "ubuntu-latest",  target: "arm-unknown-linux-gnueabihf",  artifact_prefix: "arm-gnu",      use-cross: true, test-bin: "--bin jwt-ui" }
-          - { os: "ubuntu-latest",  target: "arm-unknown-linux-musleabihf", artifact_prefix: "arm-musl",     use-cross: true, test-bin: "--bin jwt-ui" }
+          - { os: "ubuntu-latest",  target: "aarch64-unknown-linux-gnu",    artifact_prefix: "aarch64-gnu",  use-cross: true, test-bin: "--bin jwtui" }
+          - { os: "ubuntu-latest",  target: "aarch64-unknown-linux-musl",   artifact_prefix: "aarch64-musl", use-cross: true, test-bin: "--bin jwtui" }
+          - { os: "ubuntu-latest",  target: "arm-unknown-linux-gnueabihf",  artifact_prefix: "arm-gnu",      use-cross: true, test-bin: "--bin jwtui" }
+          - { os: "ubuntu-latest",  target: "arm-unknown-linux-musleabihf", artifact_prefix: "arm-musl",     use-cross: true, test-bin: "--bin jwtui" }
 
     steps:
       - name: Checkout repository
@@ -121,10 +121,10 @@ jobs:
         shell: bash
         run: |
           cd target/${{ matrix.job.target }}/release
-          BINARY_NAME=jwt-ui.exe
+          BINARY_NAME=jwtui.exe
           # strip the binary
           strip $BINARY_NAME
-          RELEASE_NAME=jwt-ui-${{ matrix.job.artifact_prefix }}
+          RELEASE_NAME=jwtui-${{ matrix.job.artifact_prefix }}
           tar czvf $RELEASE_NAME.tar.gz $BINARY_NAME
           # create sha checksum files
           certutil -hashfile $RELEASE_NAME.tar.gz sha256 | grep -E [A-Fa-f0-9]{64} > $RELEASE_NAME.sha256
@@ -141,10 +141,10 @@ jobs:
             aarch64-*-linux-*) STRIP="aarch64-linux-gnu-strip" ;;
           esac;
           cd target/${{ matrix.job.target }}/release
-          BINARY_NAME=jwt-ui
+          BINARY_NAME=jwtui
           # strip the binary
           "$STRIP" "$BINARY_NAME"
-          RELEASE_NAME=jwt-ui-${{ matrix.job.artifact_prefix }}
+          RELEASE_NAME=jwtui-${{ matrix.job.artifact_prefix }}
           tar czvf $RELEASE_NAME.tar.gz $BINARY_NAME
           # create sha checksum files
           shasum -a 256 $RELEASE_NAME.tar.gz > $RELEASE_NAME.sha256
@@ -171,7 +171,7 @@ jobs:
 
   publish-package-formula:
     needs: [build-release]
-    name: Update homebrew & choco formulas
+    name: Update homebrew & scoop formulas
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -188,11 +188,11 @@ jobs:
       - name: Set release assets and version
         shell: bash
         run: |
-          macos_sha="$(cat ./artifacts/jwt-ui-macos.sha256 | awk '{print $1}')"
+          macos_sha="$(cat ./artifacts/jwtui-macos.sha256 | awk '{print $1}')"
           echo "MACOS_SHA=$macos_sha" >> $GITHUB_ENV
-          linux_sha="$(cat ./artifacts/jwt-ui-linux.sha256 | awk '{print $1}')"
+          linux_sha="$(cat ./artifacts/jwtui-linux.sha256 | awk '{print $1}')"
           echo "LINUX_SHA=$linux_sha" >> $GITHUB_ENV          
-          windows_sha="$(cat ./artifacts/jwt-ui-windows.sha256 | awk '{print $1}')"
+          windows_sha="$(cat ./artifacts/jwtui-windows.sha256 | awk '{print $1}')"
           echo "WINDOWS_SHA=$windows_sha" >> $GITHUB_ENV
           release_version="$(cat ./artifacts/release-version)"
           echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
@@ -212,31 +212,12 @@ jobs:
           # push to Git
           git config --global user.email "d4udts@gmail.com"
           git config --global user.name "deepu105"
-          git clone https://deepu105:${{ secrets.TAP_GITHUB_TOKEN }}@github.com/jwt-rs/homebrew-jwt-ui.git --branch=main brew
+          git clone https://deepu105:${{ secrets.BREWTAP_GITHUB_TOKEN }}@github.com/jwt-rs/homebrew-jwt-ui.git --branch=main brew
           rm brew/Formula/jwt-ui.rb
           cp jwt-ui.rb brew/Formula
           cd brew
           git add .
           git diff-index --quiet HEAD || git commit -am "Update formula for jwt-ui release ${{ env.RELEASE_VERSION }}"
-          git push origin main
-
-      - name: Execute chocolatey packaging script
-        run: |
-          # run packaging script
-          python "./deployment/chocolatey/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/chocolatey/jwt-ui.nuspec.template" "./jwt-ui.nuspec" ${{ env.WINDOWS_SHA }}
-          python "./deployment/chocolatey/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/chocolatey/chocolateyinstall.ps1.template" "./chocolateyinstall.ps1" ${{ env.WINDOWS_SHA }}
-          
-          # push to Git
-          git config --global user.email "d4udts@gmail.com"
-          git config --global user.name "deepu105"
-          git clone https://deepu105:${{ secrets.CHOCO_GITHUB_TOKEN }}@github.com/jwt-rs/choco-jwt-ui --branch=main choco
-          rm choco/jwt-ui.nuspec
-          rm choco/tools/chocolateyinstall.ps1
-          cp jwt-ui.nuspec choco/jwt-ui.nuspec
-          cp chocolateyinstall.ps1 choco/tools/chocolateyinstall.ps1
-          cd choco
-          git add .
-          git diff-index --quiet HEAD || git commit -am "Update package for jwt-ui release ${{ env.RELEASE_VERSION }}"
           git push origin main
 
       - name: Execute Scoop packaging script
@@ -247,7 +228,7 @@ jobs:
           # push to Git
           git config --global user.email "d4udts@gmail.com"
           git config --global user.name "deepu105"
-          git clone https://deepu105:${{ secrets.CHOCO_GITHUB_TOKEN }}@github.com/jwt-rs/scoop-jwt-ui --branch=main scoop
+          git clone https://deepu105:${{ secrets.SCOOP_GITHUB_TOKEN }}@github.com/jwt-rs/scoop-jwt-ui --branch=main scoop
           rm scoop/jwt-ui.json
           cp jwt-ui.json scoop/jwt-ui.json
           cd scoop

@@ -27,8 +27,6 @@ If applicable, add screenshots to help explain your problem.
  - OS and OS version: [e.g. macOS 10.1 / Fedora 34 / WIndows 10]
  - Terminal name and version [e.g. Tilix, Yakuake, Gnome Terminal, Konsole, iTerm, Windows CMD]
  - Shell name and version [e.g. bash, zsh, fish, powershell]
- - Kubectl Client Version [e.g. 1.19]
- - Kubectl Server Version [e.g. 1.19]
  - jwt-ui version [e.g. 0.0.8]
 
 **Additional context**

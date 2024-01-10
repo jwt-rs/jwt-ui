@@ -12,6 +12,15 @@
 
 [![Follow Deepu K Sasidharan (deepu105)](https://img.shields.io/twitter/follow/deepu105?label=Follow%20Deepu%20K%20Sasidharan%20%28deepu105%29&style=social)](https://twitter.com/intent/follow?screen_name=deepu105)
 
+```
+     ____.__      _____________       ____ ___.___
+    |    /  \    /  \__    ___/      |    |   \   |
+    |    \   \/\/   / |    |  ______ |    |   /   |
+/\__|    |\        /  |    | /_____/ |    |  /|   |
+\________| \__/\  /   |____|         |______/ |___|
+                \/
+```
+
 A terminal UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](https://jwt.io/) and [jwt-cli](https://github.com/mike-engel/jwt-cli)
 
 ![UI](screenshots/decoder.png)
@@ -107,7 +116,7 @@ Options:
 
 ## Features
 
-- Fully offline 
+- Fully offline
 - Dark/Light themes
 - Sensible keyboard shortcuts
 
