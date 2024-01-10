@@ -1,6 +1,6 @@
 # Contribution are welcome 🙏
 
-You need to have the Rust tool belt for developing jwt-cli
+You need to have the Rust tool belt for developing jwt-ui
 
 Install Rust tool belt following [this](https://www.rust-lang.org/tools/install). This will install `rustup`, `rustc` and `cargo`
 

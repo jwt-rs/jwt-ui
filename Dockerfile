@@ -1,5 +1,5 @@
 # -----------------------------
-# Build jwt-cli base image
+# Build jwt-ui base image
 # -----------------------------
 
 FROM rust as builder
@@ -12,8 +12,8 @@ RUN apt-get update && \
     rustup target add x86_64-unknown-linux-musl
 
 # Download and compile Rust dependencies in an empty project and cache as a separate Docker layer
-RUN USER=root cargo new --bin jwt-cli-temp
-WORKDIR /usr/src/jwt-cli-temp
+RUN USER=root cargo new --bin jwt-ui-temp
+WORKDIR /usr/src/jwt-ui-temp
 COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
 RUN cargo build --release --target x86_64-unknown-linux-musl
@@ -26,16 +26,16 @@ COPY src ./src
 RUN apt-get update && \
     apt-get install -y pkg-config libssl-dev libxcb-composite0-dev
 # remove previous deps
-RUN rm ./target/x86_64-unknown-linux-musl/release/deps/jwt-cli*
+RUN rm ./target/x86_64-unknown-linux-musl/release/deps/jwt-ui*
 RUN cargo build --release --target x86_64-unknown-linux-musl
 
 # -----------------------------
-# build final jwt-cli image
+# build final jwt-ui image
 # -----------------------------
 
 FROM alpine:latest
 
 # Copy the compiled binary from the builder container
-COPY --from=builder /usr/src/jwt-cli-temp/target/x86_64-unknown-linux-musl/release/jwt-cli /usr/local/bin
+COPY --from=builder /usr/src/jwt-ui-temp/target/x86_64-unknown-linux-musl/release/jwtui /usr/local/bin
 
-ENTRYPOINT [ "/usr/local/bin/jwt-cli" ]
+ENTRYPOINT [ "/usr/local/bin/jwtui" ]
