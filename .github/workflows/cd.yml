@@ -4,7 +4,8 @@ on:
   push:
     tags:
       - "v*.*.*"
-
+permissions:
+  contents: write
 jobs:
   create-github-release:
     name: create-github-release
