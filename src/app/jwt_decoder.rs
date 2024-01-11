@@ -505,7 +505,20 @@ mod tests {
   }
 
   #[test]
+  #[should_panic(expected = "The system cannot find the file specified. (os error 2)")]
+  #[cfg(target_os = "windows")]
+  fn test_decoding_key_from_secret_nonexistent_file() {
+    let secret_file_name = "nonexistent.txt";
+    let alg = Algorithm::HS256;
+
+    let secret_string = format!("@{}", secret_file_name);
+
+    decoding_key_from_secret(&alg, &secret_string).unwrap();
+  }
+
+  #[test]
   #[should_panic(expected = "No such file or directory (os error 2)")]
+  #[cfg(not(target_os = "windows"))]
   fn test_decoding_key_from_secret_nonexistent_file() {
     let secret_file_name = "nonexistent.txt";
     let alg = Algorithm::HS256;
