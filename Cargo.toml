@@ -1,6 +1,6 @@
 [package]
 name = "jwt-ui"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["Deepu K Sasidharan <d4udts@gmail.com>"]
 description = """
 A Terminal UI for decoding/encoding JSON Web Tokens
