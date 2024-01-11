@@ -75,7 +75,7 @@ curl https://raw.githubusercontent.com/jwt-rs/jwt-ui/main/deployment/getLatest.s
 
 ### Docker
 
-Run KDash as a Docker container by mounting your `KUBECONFIG`. For example the below command for the default path
+Run JWT UI as a Docker container.
 
 ```bash
 docker run --rm deepu105/jwt-ui
