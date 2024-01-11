@@ -212,7 +212,7 @@ jobs:
           # push to Git
           git config --global user.email "d4udts@gmail.com"
           git config --global user.name "deepu105"
-          git clone https://deepu105:${{ secrets.BREWTAP_GITHUB_TOKEN }}@github.com/jwt-rs/homebrew-jwt-ui.git --branch=main brew
+          git clone https://deepu105:${{ secrets.JWT_RS_GITHUB_TOKEN }}@github.com/jwt-rs/homebrew-jwt-ui.git --branch=main brew
           rm brew/Formula/jwt-ui.rb
           cp jwt-ui.rb brew/Formula
           cd brew
@@ -228,7 +228,7 @@ jobs:
           # push to Git
           git config --global user.email "d4udts@gmail.com"
           git config --global user.name "deepu105"
-          git clone https://deepu105:${{ secrets.SCOOP_GITHUB_TOKEN }}@github.com/jwt-rs/scoop-jwt-ui --branch=main scoop
+          git clone https://deepu105:${{ secrets.JWT_RS_GITHUB_TOKEN }}@github.com/jwt-rs/scoop-jwt-ui --branch=main scoop
           rm scoop/jwt-ui.json
           cp jwt-ui.json scoop/jwt-ui.json
           cd scoop

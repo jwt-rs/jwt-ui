@@ -34,7 +34,7 @@ fmt:
 
 ## Build a Docker Image
 docker:    
-	@DOCKER_BUILDKIT=1 docker build --rm -t ${IMAGE} .
+	@DOCKER_BUILDKIT=1 docker build --progress=plain --rm -t ${IMAGE} .
 
 ## Run Docker Image locally
 docker-run:    
