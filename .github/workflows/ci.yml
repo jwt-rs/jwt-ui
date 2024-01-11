@@ -57,13 +57,14 @@ jobs:
           RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
       - name: coverage 
         id: coverage 
-        run: grcov '/home/runner/work/jwt-ui/jwt-ui' --source-dir '/home/runner/work/jwt-ui/jwt-ui' --service-job-id $GITHUB_JOB --service-name 'Continuous Integration' --commit-sha $GITHUB_SHA --output-file /tmp/lcov-$GITHUB_SHA.info --branch --ignore-not-existing --llvm --filter covered --ignore '/*' --ignore 'C:/*' --ignore '../*' --keep-only './src/*'
+        run: /
+          grcov '/home/runner/work/jwt-ui/jwt-ui' --source-dir '/home/runner/work/jwt-ui/jwt-ui' --service-job-id ${{ github.job }} --service-name 'Continuous Integration' --commit-sha ${{ github.sha }} --output-file "/tmp/lcov-${{ github.sha }}.info" --branch --ignore-not-existing --llvm --filter covered --ignore '/*' --ignore 'C:/*' --ignore '../*' --keep-only './src/*'
         
       - name: Push grcov results to Coveralls
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ${{ steps.coverage.outputs.report }}
+          path-to-lcov: /tmp/lcov-${{ github.sha }}.info
 
   fmt:
     name: Rustfmt
