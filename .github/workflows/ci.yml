@@ -47,15 +47,18 @@ jobs:
           override: true
       # These dependencies are required for `clipboard`
       - run: sudo apt-get install -y -qq libxcb1-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+      - run: cargo install grcov
       - uses: actions-rs/cargo@v1
-        with:
+        with: 
           command: test
         env:
           CARGO_INCREMENTAL: '0'
           RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
           RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-      - id: coverage 
-        uses: deepu105/grcov@0.2-proto
+      - name: coverage 
+        id: coverage 
+        run: grcov '/home/runner/work/jwt-ui/jwt-ui' --source-dir '/home/runner/work/jwt-ui/jwt-ui' --service-job-id $GITHUB_JOB --service-name 'Continuous Integration' --commit-sha $GITHUB_SHA --output-file /tmp/lcov-$GITHUB_SHA.info --branch --ignore-not-existing --llvm --filter covered --ignore '/*' --ignore 'C:/*' --ignore '../*' --keep-only './src/*'
+        
       - name: Push grcov results to Coveralls
         uses: coverallsapp/github-action@master
         with:
