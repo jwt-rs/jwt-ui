@@ -2,7 +2,7 @@
 
 ## Unreleased - 2023-XX-YY
 
-## [0.0.1] - 2024-01-10
+## [1.0.0] - 2024-01-11
 
 - Initial release
 - Encoder
