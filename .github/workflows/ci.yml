@@ -58,7 +58,7 @@ jobs:
       - name: coverage 
         id: coverage 
         run: |
-          grcov '/home/runner/work/jwt-ui/jwt-ui' --source-dir '/home/runner/work/jwt-ui/jwt-ui' --service-job-id ${{ github.job }} --service-name 'Continuous Integration' --commit-sha ${{ github.sha }} --output-file "/tmp/lcov-${{ github.sha }}.info" --branch --ignore-not-existing --llvm --filter covered --ignore '/*' --ignore 'C:/*' --ignore '../*' --keep-only './src/*' -t lcov
+          grcov '/home/runner/work/jwt-ui/jwt-ui' --source-dir '/home/runner/work/jwt-ui/jwt-ui' --service-job-id ${{ github.job }} --service-name 'Continuous Integration' --commit-sha ${{ github.sha }} --output-file "/tmp/lcov-${{ github.sha }}.info" --branch --ignore-not-existing --llvm --filter covered --ignore '/*' --ignore 'C:/*' --ignore '../*' -t lcov
         
       - name: Push grcov results to Coveralls
         uses: coverallsapp/github-action@v2
