@@ -6,9 +6,11 @@
 ![LOC](https://tokei.rs/b1/github/jwt-rs/jwt-ui?category=code)
 [![crates.io link](https://img.shields.io/crates/v/jwt-ui.svg)](https://crates.io/crates/jwt-ui)
 ![Release](https://img.shields.io/github/v/release/jwt-rs/jwt-ui?color=%23c694ff)
+![Docker Release](https://img.shields.io/docker/v/deepu105/jwt-ui?label=Docker%20version)
 [![Coverage](https://coveralls.io/repos/github/jwt-rs/jwt-ui/badge.svg?branch=main)](https://coveralls.io/github/jwt-rs/jwt-ui?branch=main)
 [![GitHub Downloads](https://img.shields.io/github/downloads/jwt-rs/jwt-ui/total.svg?label=GitHub%20downloads)](https://github.com/jwt-rs/jwt-ui/releases)
 ![Crate.io downloads](https://img.shields.io/crates/d/jwt-ui?label=Crate%20downloads)
+![Docker pulls](https://img.shields.io/docker/pulls/deepu105/jwt-ui?label=Docker%20downloads)
 
 [![Follow Deepu K Sasidharan (deepu105)](https://img.shields.io/twitter/follow/deepu105?label=Follow%20Deepu%20K%20Sasidharan%20%28deepu105%29&style=social)](https://twitter.com/intent/follow?screen_name=deepu105)
 
