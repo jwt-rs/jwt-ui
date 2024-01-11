@@ -55,6 +55,16 @@ scoop bucket add jwt-ui-bucket https://github.com/jwt-rs/scoop-jwt-ui
 scoop install jwt-ui
 ```
 
+### Cargo
+
+If you have Cargo installed then you install JWT UI from crates.io
+
+```bash
+cargo install jwt-ui
+```
+
+You can also clone the repo and run `cargo run` or `make` to build and run the app
+
 ### Install script
 
 Run the below command to install the latest binary. Run with sudo if you don't have write access to `/usr/local/bin`. Else the script will install to the current directory
@@ -62,6 +72,16 @@ Run the below command to install the latest binary. Run with sudo if you don't h
 ```sh
 curl https://raw.githubusercontent.com/jwt-rs/jwt-ui/main/deployment/getLatest.sh | bash
 ```
+
+### Docker
+
+Run KDash as a Docker container by mounting your `KUBECONFIG`. For example the below command for the default path
+
+```bash
+docker run --rm deepu105/jwt-ui
+```
+
+You can also clone this repo and run `make docker` to build a docker image locally and run it using the above command
 
 ### Manual
 
@@ -75,19 +95,11 @@ Binaries for macOS, Linux and Windows are available on the [releases](https://gi
    1. Use 7-Zip or TarTool to unpack the tar file.
    2. Run the executable file `jwtui.exe`
 
-### Cargo
-
-If you have Cargo installed then you install JWT UI from crates.io
-
-```bash
-cargo install jwt-ui
-```
+## Troubleshooting
 
 > Note: On Debian/Ubuntu you might need to install `libxcb-xfixes0-dev` and `libxcb-shape0-dev`. On Fedora `libxcb` and `libxcb-devel` would be needed.
 
 > Note: On Linux you might need to have package `xorg-dev` (Debian/Ubuntu) or `xorg-x11-server-devel` (Fedora) or equivalent installed for the copy to clipboard features to work
-
-You can also clone the repo and run `cargo run` or `make` to build and run the app
 
 ## USAGE:
 
