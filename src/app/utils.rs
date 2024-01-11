@@ -26,7 +26,17 @@ mod tests {
   }
 
   #[test]
+  #[should_panic(expected = "The system cannot find the file specified.")]
+  #[cfg(target_os = "windows")]
+  fn test_slurp_file_nonexistent() {
+    let file_name = "nonexistent.txt";
+
+    slurp_file(file_name).unwrap();
+  }
+
+  #[test]
   #[should_panic(expected = "No such file or directory")]
+  #[cfg(not(target_os = "windows"))]
   fn test_slurp_file_nonexistent() {
     let file_name = "nonexistent.txt";
 
