@@ -65,7 +65,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           file: /tmp/lcov-${{ github.sha }}.info
-          format: lcove
+          format: lcov
 
   fmt:
     name: Rustfmt
