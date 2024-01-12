@@ -203,7 +203,14 @@ fn decode_token(
   insecure_validator.required_spec_claims = HashSet::new();
   insecure_validator.validate_exp = false;
   insecure_validator.validate_aud = false;
-  let insecure_decoding_key = DecodingKey::from_secret("".as_ref());
+
+  let insecure_decoding_key = match algorithm {
+    Algorithm::HS256 | Algorithm::HS384 | Algorithm::HS512 => Ok(DecodingKey::from_secret(b"")),
+    Algorithm::ES256 | Algorithm::ES384 => DecodingKey::from_ec_components("", ""),
+    Algorithm::EdDSA => DecodingKey::from_ed_components(""),
+    _ => DecodingKey::from_rsa_components("", ""),
+  }
+  .map_or(DecodingKey::from_secret(b""), |key| key);
 
   let decode_only = decode::<Payload>(&arguments.jwt, &insecure_decoding_key, &insecure_validator)
     .map_err(Error::into);
@@ -366,7 +373,10 @@ mod tests {
     let (decode_only, verified_token_data) = decode_token(&args);
 
     assert!(decode_only.is_ok());
-    assert!(verified_token_data.is_err());
+    assert!(verified_token_data
+      .unwrap_err()
+      .to_string()
+      .contains("The JWT provided has an invalid signature: InvalidSignature"));
 
     let decode_only_token = decode_only.unwrap();
 
