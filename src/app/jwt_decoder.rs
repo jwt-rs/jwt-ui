@@ -187,11 +187,12 @@ pub fn print_decoded_token(token: &TokenData<Payload>, json: bool) {
 fn decode_token(
   arguments: &DecodeArgs,
 ) -> (JWTResult<TokenData<Payload>>, JWTResult<TokenData<Payload>>) {
-  let mut insecure_validator = Validation::new(Algorithm::HS256);
+  let mut insecure_validator = Validation::new(Algorithm::RS256);
   // disable signature validation as its not needed for just decoding
   insecure_validator.insecure_disable_signature_validation();
   insecure_validator.required_spec_claims = HashSet::new();
   insecure_validator.validate_exp = false;
+  insecure_validator.validate_aud = false;
   let insecure_decoding_key = DecodingKey::from_secret("".as_ref());
 
   let decode_only = decode::<Payload>(&arguments.jwt, &insecure_decoding_key, &insecure_validator)
@@ -311,6 +312,33 @@ mod tests {
 
     assert_eq!(decode_only_token.header.alg, Algorithm::HS256);
     assert_eq!(verified_token_data.header.alg, Algorithm::HS256);
+    assert_eq!(
+      format!("{:?}", decode_only_token.claims.0.get("name").unwrap()),
+      "String(\"John Doe\")"
+    );
+  }
+
+  #[test]
+  fn test_decode_token_with_valid_jwt_and_secret_rs256() {
+    let secret_file_name = "./test_data/test_ecdsa_public.pem";
+
+    let args = DecodeArgs {
+            jwt: String::from("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkRGbzcxemxOdV9vLTkxOFJIN0lIVyJ9.eyJodHRwczovL3d3dy5qaGlwc3Rlci50ZWNoL3JvbGVzIjpbIkFkbWluaXN0cmF0b3IiLCJST0xFX0FETUlOIiwiUk9MRV9VU0VSIl0sImlzcyI6Imh0dHBzOi8vZGV2LTA2YnpzMWN1LnVzLmF1dGgwLmNvbS8iLCJzdWIiOiJhdXRoMHw2MWJjYmM3NmY2NGQ0YTAwNzJhZjhhMWQiLCJhdWQiOlsiaHR0cHM6Ly9kZXYtMDZienMxY3UudXMuYXV0aDAuY29tL2FwaS92Mi8iLCJodHRwczovL2Rldi0wNmJ6czFjdS51cy5hdXRoMC5jb20vdXNlcmluZm8iXSwiaWF0IjoxNzA1MDAyMDQxLCJleHAiOjE3MDUwODg0NDEsImF6cCI6IjFmbTdJMUdHRXRNZlRabW5vdFV1azVVT3gyWm10NnR0Iiwic2NvcGUiOiJvcGVuaWQifQ.eWdbVEolnmqqyx_Z5rR-09H3kg06EaokYoAAdrqLmB6FHwZbbyZrPaHImmEnY8BSRM42FpE9NZehqVAeQ5VQhOVdMMklCQSA5h13oQbKn6ciuc9Etyq2jg4sk2lOEkSmw4e_hWUGjkXnzP_J84o9-2qpN7VKNTGEvtk3mdQYXxwoeD8RvQjYJq6LsKIKA0biEyGWZxIpK1LCAFH1dmo5ZMpTeNGIwnUBdOxkL4jbKe26e9t7TDO0EtFjXmq-C218bbr1AgFN2eyj6n-3kNy9XfRcnfIlyXWJ0ZvcDVa9UoaTGP9Wdo0Ze3q2IrcgYrP7zTeZia5O2tejkaNknKNnwA"),
+            secret: format!("@{}", secret_file_name),
+            time_format_utc: false,
+            ignore_exp: true,
+        };
+
+    let (decode_only, verified_token_data) = decode_token(&args);
+
+    assert!(decode_only.is_ok());
+    assert!(verified_token_data.is_ok());
+
+    let decode_only_token = decode_only.unwrap();
+    let verified_token_data = verified_token_data.unwrap();
+
+    assert_eq!(decode_only_token.header.alg, Algorithm::ES384);
+    assert_eq!(verified_token_data.header.alg, Algorithm::ES384);
     assert_eq!(
       format!("{:?}", decode_only_token.claims.0.get("name").unwrap()),
       "String(\"John Doe\")"
