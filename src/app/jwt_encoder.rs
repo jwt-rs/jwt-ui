@@ -2,7 +2,7 @@ use jsonwebtoken::{errors::Error, Algorithm, EncodingKey, Header};
 
 use super::{
   jwt_decoder::Payload,
-  jwt_utils::{get_secret, JWTResult},
+  jwt_utils::{get_secret, JWTError, JWTResult, SecretFileType},
   models::{ScrollableTxt, TabRoute, TabsState},
   ActiveBlock, App, Route, RouteId, TextAreaInput, TextInput,
 };
@@ -108,7 +108,8 @@ pub fn encode_jwt_token(app: &mut App) {
 }
 
 pub fn encoding_key_from_secret(alg: &Algorithm, secret_string: &str) -> JWTResult<EncodingKey> {
-  let secret = get_secret(alg, secret_string)?;
+  let (secret, file_type) = get_secret(alg, secret_string);
+  let secret = secret?;
 
   match alg {
     Algorithm::HS256 | Algorithm::HS384 | Algorithm::HS512 => Ok(EncodingKey::from_secret(&secret)),
@@ -117,17 +118,26 @@ pub fn encoding_key_from_secret(alg: &Algorithm, secret_string: &str) -> JWTResu
     | Algorithm::RS512
     | Algorithm::PS256
     | Algorithm::PS384
-    | Algorithm::PS512 => match secret_string.ends_with(".pem") {
-      true => EncodingKey::from_rsa_pem(&secret).map_err(Error::into),
-      false => Ok(EncodingKey::from_rsa_der(&secret)),
+    | Algorithm::PS512 => match file_type {
+      SecretFileType::Pem => EncodingKey::from_rsa_pem(&secret).map_err(Error::into),
+      SecretFileType::Der => Ok(EncodingKey::from_rsa_der(&secret)),
+      _ => Err(JWTError::Internal(format!(
+        "Invalid secret file type for {alg:?}"
+      ))),
     },
-    Algorithm::ES256 | Algorithm::ES384 => match secret_string.ends_with(".pem") {
-      true => EncodingKey::from_ec_pem(&secret).map_err(Error::into),
-      false => Ok(EncodingKey::from_ec_der(&secret)),
+    Algorithm::ES256 | Algorithm::ES384 => match file_type {
+      SecretFileType::Pem => EncodingKey::from_ec_pem(&secret).map_err(Error::into),
+      SecretFileType::Der => Ok(EncodingKey::from_ec_der(&secret)),
+      _ => Err(JWTError::Internal(format!(
+        "Invalid secret file type for {alg:?}"
+      ))),
     },
-    Algorithm::EdDSA => match secret_string.ends_with(".pem") {
-      true => EncodingKey::from_ed_pem(&secret).map_err(Error::into),
-      false => Ok(EncodingKey::from_ed_der(&secret)),
+    Algorithm::EdDSA => match file_type {
+      SecretFileType::Pem => EncodingKey::from_ed_pem(&secret).map_err(Error::into),
+      SecretFileType::Der => Ok(EncodingKey::from_ed_der(&secret)),
+      _ => Err(JWTError::Internal(format!(
+        "Invalid secret file type for {alg:?}"
+      ))),
     },
   }
 }
@@ -179,7 +189,7 @@ mod tests {
     ];
     app.data.encoder.payload.input = claims.clone().into();
 
-    app.data.encoder.secret.input = "@./test_data/test_rsa_private.pem".into();
+    app.data.encoder.secret.input = "@./test_data/test_rsa_private_key.pem".into();
 
     encode_jwt_token(&mut app);
     assert_eq!(app.data.error, "");
@@ -198,7 +208,7 @@ mod tests {
       .retain(|claim| claim != "exp");
     secret_validator.validate_exp = false;
 
-    let secret_string = "@./test_data/test_rsa_public.pem";
+    let secret_string = "@./test_data/test_rsa_public_key.pem";
 
     let secret = slurp_file(&secret_string.chars().skip(1).collect::<String>()).unwrap();
 

@@ -3,7 +3,7 @@ use std::fmt;
 use base64::{engine::general_purpose::STANDARD as base64_engine, Engine as _};
 use jsonwebtoken::{
   errors::{Error, ErrorKind},
-  Algorithm,
+  jwk, Algorithm, DecodingKey, Header,
 };
 
 use super::utils::slurp_file;
@@ -56,29 +56,121 @@ impl fmt::Display for JWTError {
   }
 }
 
-pub fn get_secret(alg: &Algorithm, secret_string: &str) -> JWTResult<Vec<u8>> {
+pub enum SecretFileType {
+  Pem,
+  Der,
+  Jwks,
+  Na,
+}
+
+pub fn get_secret(alg: &Algorithm, secret_string: &str) -> (JWTResult<Vec<u8>>, SecretFileType) {
   return match alg {
     Algorithm::HS256 | Algorithm::HS384 | Algorithm::HS512 => {
       if secret_string.starts_with('@') {
-        slurp_file(&secret_string.chars().skip(1).collect::<String>()).map_err(JWTError::from)
+        (
+          slurp_file(&secret_string.chars().skip(1).collect::<String>()).map_err(JWTError::from),
+          SecretFileType::Na,
+        )
       } else if secret_string.starts_with("b64:") {
-        base64_engine
-          .decode(secret_string.chars().skip(4).collect::<String>())
-          .map_err(JWTError::from)
+        (
+          base64_engine
+            .decode(secret_string.chars().skip(4).collect::<String>())
+            .map_err(JWTError::from),
+          SecretFileType::Na,
+        )
       } else {
-        Ok(secret_string.as_bytes().to_owned())
+        (Ok(secret_string.as_bytes().to_owned()), SecretFileType::Na)
       }
     }
-    _ => {
+    Algorithm::EdDSA => {
       if !&secret_string.starts_with('@') {
-        return Err(JWTError::Internal(format!(
-          "Secret for {alg:?} must be a file path starting with @",
-        )));
+        return (
+          Err(JWTError::Internal(format!(
+            "Secret for {alg:?} must be a file path starting with @",
+          ))),
+          SecretFileType::Na,
+        );
       }
 
-      slurp_file(&secret_string.chars().skip(1).collect::<String>()).map_err(JWTError::from)
+      (
+        slurp_file(&secret_string.chars().skip(1).collect::<String>()).map_err(JWTError::from),
+        get_secret_file_type(secret_string),
+      )
+    }
+    _ => {
+      if secret_string.starts_with('@') {
+        (
+          slurp_file(&secret_string.chars().skip(1).collect::<String>()).map_err(JWTError::from),
+          get_secret_file_type(secret_string),
+        )
+      } else {
+        // allows to read JWKS from argument (e.g. output of 'curl https://auth.domain.com/jwks.json')
+        (Ok(secret_string.as_bytes().to_vec()), SecretFileType::Jwks)
+      }
     }
   };
+}
+
+pub fn decoding_key_from_jwks_secret(
+  secret: &[u8],
+  header: Option<Header>,
+) -> JWTResult<DecodingKey> {
+  if let Some(h) = header {
+    return match parse_jwks(secret) {
+      Some(jwks) => decoding_key_from_jwks(jwks, &h),
+      None => Err(JWTError::Internal("Invalid jwks secret format".to_string())),
+    };
+  }
+  Err(JWTError::Internal(
+    "Invalid jwt header for jwks secret".to_string(),
+  ))
+}
+
+fn decoding_key_from_jwks(jwks: jwk::JwkSet, header: &Header) -> JWTResult<DecodingKey> {
+  let kid = match &header.kid {
+    Some(k) => k.to_owned(),
+    None => {
+      return Err(JWTError::Internal(
+        "Missing 'kid' from jwt header. Required for jwks secret".to_string(),
+      ));
+    }
+  };
+
+  let jwk = match jwks.find(&kid) {
+    Some(j) => j,
+    None => {
+      return Err(JWTError::Internal(format!(
+        "No jwk found for 'kid' {kid:?}",
+      )));
+    }
+  };
+
+  match &jwk.algorithm {
+    jwk::AlgorithmParameters::RSA(rsa) => {
+      DecodingKey::from_rsa_components(&rsa.n, &rsa.e).map_err(Error::into)
+    }
+    jwk::AlgorithmParameters::EllipticCurve(ec) => {
+      DecodingKey::from_ec_components(&ec.x, &ec.y).map_err(Error::into)
+    }
+    _ => Err(JWTError::Internal("Unsupported alg".to_string())),
+  }
+}
+
+fn parse_jwks(secret: &[u8]) -> Option<jwk::JwkSet> {
+  match serde_json::from_slice(secret) {
+    Ok(jwks) => Some(jwks),
+    Err(_) => None,
+  }
+}
+
+fn get_secret_file_type(secret_string: &str) -> SecretFileType {
+  if secret_string.ends_with(".pem") {
+    SecretFileType::Pem
+  } else if secret_string.ends_with(".json") {
+    SecretFileType::Jwks
+  } else {
+    SecretFileType::Der
+  }
 }
 
 fn map_external_error(ext_err: &Error) -> String {

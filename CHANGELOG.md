@@ -2,6 +2,12 @@
 
 ## Unreleased - 2023-XX-YY
 
+## [1.0.1] - 2024-01-12
+
+- Disable audience validation
+- Support JWKS secret from argument and file
+- Update libraries
+
 ## [1.0.0] - 2024-01-11
 
 - Initial release
