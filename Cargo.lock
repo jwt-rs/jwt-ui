@@ -504,7 +504,6 @@ name = "jwt-ui"
 version = "1.0.1"
 dependencies = [
  "backtrace",
- "base64",
  "cargo-husky",
  "chrono",
  "clap",

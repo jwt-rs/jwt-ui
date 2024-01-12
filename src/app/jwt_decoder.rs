@@ -8,7 +8,7 @@ use serde_derive::{Deserialize, Serialize};
 use serde_json::{to_string_pretty, Value};
 
 use super::{
-  jwt_utils::{decoding_key_from_jwks_secret, get_secret, JWTError, JWTResult, SecretFileType},
+  jwt_utils::{decoding_key_from_jwks_secret, get_secret, JWTError, JWTResult, SecretType},
   models::{ScrollableTxt, TabRoute, TabsState},
   ActiveBlock, App, Route, RouteId, TextInput,
 };
@@ -227,6 +227,7 @@ fn decode_token(
   let mut secret_validator = Validation::new(algorithm);
 
   secret_validator.leeway = 1000;
+  secret_validator.validate_aud = false;
 
   if arguments.ignore_exp {
     secret_validator
@@ -255,31 +256,41 @@ fn decoding_key_from_secret(
   let (secret, file_type) = get_secret(alg, secret_string);
   let secret = secret?;
   match alg {
-    Algorithm::HS256 | Algorithm::HS384 | Algorithm::HS512 => Ok(DecodingKey::from_secret(&secret)),
+    Algorithm::HS256 | Algorithm::HS384 | Algorithm::HS512 => match file_type {
+      SecretType::Plain => Ok(DecodingKey::from_secret(&secret)),
+      SecretType::Jwks => decoding_key_from_jwks_secret(&secret, header),
+      SecretType::B64 => {
+        DecodingKey::from_base64_secret(std::str::from_utf8(&secret)?).map_err(Error::into)
+      }
+      _ => Err(JWTError::Internal(format!(
+        "Invalid secret file type for {alg:?}"
+      ))),
+    },
     Algorithm::RS256
     | Algorithm::RS384
     | Algorithm::RS512
     | Algorithm::PS256
     | Algorithm::PS384
     | Algorithm::PS512 => match file_type {
-      SecretFileType::Pem => DecodingKey::from_rsa_pem(&secret).map_err(Error::into),
-      SecretFileType::Der => Ok(DecodingKey::from_rsa_der(&secret)),
-      SecretFileType::Jwks => decoding_key_from_jwks_secret(&secret, header),
+      SecretType::Pem => DecodingKey::from_rsa_pem(&secret).map_err(Error::into),
+      SecretType::Der => Ok(DecodingKey::from_rsa_der(&secret)),
+      SecretType::Jwks => decoding_key_from_jwks_secret(&secret, header),
       _ => Err(JWTError::Internal(format!(
         "Invalid secret file type for {alg:?}"
       ))),
     },
     Algorithm::ES256 | Algorithm::ES384 => match file_type {
-      SecretFileType::Pem => DecodingKey::from_ec_pem(&secret).map_err(Error::into),
-      SecretFileType::Der => Ok(DecodingKey::from_ec_der(&secret)),
-      SecretFileType::Jwks => decoding_key_from_jwks_secret(&secret, header),
+      SecretType::Pem => DecodingKey::from_ec_pem(&secret).map_err(Error::into),
+      SecretType::Der => Ok(DecodingKey::from_ec_der(&secret)),
+      SecretType::Jwks => decoding_key_from_jwks_secret(&secret, header),
       _ => Err(JWTError::Internal(format!(
         "Invalid secret file type for {alg:?}"
       ))),
     },
     Algorithm::EdDSA => match file_type {
-      SecretFileType::Pem => DecodingKey::from_ed_pem(&secret).map_err(Error::into),
-      SecretFileType::Der => Ok(DecodingKey::from_ed_der(&secret)),
+      SecretType::Pem => DecodingKey::from_ed_pem(&secret).map_err(Error::into),
+      SecretType::Der => Ok(DecodingKey::from_ed_der(&secret)),
+      SecretType::Jwks => decoding_key_from_jwks_secret(&secret, header),
       _ => Err(JWTError::Internal(format!(
         "Invalid secret file type for {alg:?}"
       ))),

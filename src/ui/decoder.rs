@@ -70,7 +70,7 @@ fn draw_secret_block(f: &mut Frame<'_>, app: &App, area: Rect) {
     vertical_chunks_with_margin(vec![Constraint::Length(1), Constraint::Min(2)], area, 1);
 
   let mut text = Text::from(
-    "Prepend 'b64:' for base64 encoded secret. Prepend '@' for file path (.pem, .pk8, .der)",
+    "Prepend 'b64:' for base64 encoded secret. Prepend '@' for file path (.pem, .pk8, .der, .json)",
   );
   text.patch_style(style_default(app.light_theme));
   let paragraph = Paragraph::new(text).block(Block::default());

@@ -1,6 +1,5 @@
-use std::fmt;
+use std::{fmt, str::Utf8Error};
 
-use base64::{engine::general_purpose::STANDARD as base64_engine, Engine as _};
 use jsonwebtoken::{
   errors::{Error, ErrorKind},
   jwk, Algorithm, DecodingKey, Header,
@@ -23,14 +22,14 @@ impl From<jsonwebtoken::errors::Error> for JWTError {
   }
 }
 
-impl From<serde_json::Error> for JWTError {
-  fn from(value: serde_json::Error) -> Self {
+impl From<Utf8Error> for JWTError {
+  fn from(value: Utf8Error) -> Self {
     JWTError::Internal(value.to_string())
   }
 }
 
-impl From<base64::DecodeError> for JWTError {
-  fn from(value: base64::DecodeError) -> Self {
+impl From<serde_json::Error> for JWTError {
+  fn from(value: serde_json::Error) -> Self {
     JWTError::Internal(value.to_string())
   }
 }
@@ -56,46 +55,41 @@ impl fmt::Display for JWTError {
   }
 }
 
-pub enum SecretFileType {
+pub enum SecretType {
   Pem,
   Der,
   Jwks,
-  Na,
+  B64,
+  Plain,
 }
 
-pub fn get_secret(alg: &Algorithm, secret_string: &str) -> (JWTResult<Vec<u8>>, SecretFileType) {
+pub fn get_secret(alg: &Algorithm, secret_string: &str) -> (JWTResult<Vec<u8>>, SecretType) {
   return match alg {
     Algorithm::HS256 | Algorithm::HS384 | Algorithm::HS512 => {
       if secret_string.starts_with('@') {
         (
           slurp_file(&secret_string.chars().skip(1).collect::<String>()).map_err(JWTError::from),
-          SecretFileType::Na,
+          if secret_string.ends_with(".json") {
+            SecretType::Jwks
+          } else {
+            SecretType::Plain
+          },
         )
       } else if secret_string.starts_with("b64:") {
         (
-          base64_engine
-            .decode(secret_string.chars().skip(4).collect::<String>())
-            .map_err(JWTError::from),
-          SecretFileType::Na,
+          Ok(
+            secret_string
+              .chars()
+              .skip(4)
+              .collect::<String>()
+              .as_bytes()
+              .to_owned(),
+          ),
+          SecretType::B64,
         )
       } else {
-        (Ok(secret_string.as_bytes().to_owned()), SecretFileType::Na)
+        (Ok(secret_string.as_bytes().to_owned()), SecretType::Plain)
       }
-    }
-    Algorithm::EdDSA => {
-      if !&secret_string.starts_with('@') {
-        return (
-          Err(JWTError::Internal(format!(
-            "Secret for {alg:?} must be a file path starting with @",
-          ))),
-          SecretFileType::Na,
-        );
-      }
-
-      (
-        slurp_file(&secret_string.chars().skip(1).collect::<String>()).map_err(JWTError::from),
-        get_secret_file_type(secret_string),
-      )
     }
     _ => {
       if secret_string.starts_with('@') {
@@ -105,7 +99,7 @@ pub fn get_secret(alg: &Algorithm, secret_string: &str) -> (JWTResult<Vec<u8>>, 
         )
       } else {
         // allows to read JWKS from argument (e.g. output of 'curl https://auth.domain.com/jwks.json')
-        (Ok(secret_string.as_bytes().to_vec()), SecretFileType::Jwks)
+        (Ok(secret_string.as_bytes().to_vec()), SecretType::Jwks)
       }
     }
   };
@@ -145,15 +139,7 @@ fn decoding_key_from_jwks(jwks: jwk::JwkSet, header: &Header) -> JWTResult<Decod
     }
   };
 
-  match &jwk.algorithm {
-    jwk::AlgorithmParameters::RSA(rsa) => {
-      DecodingKey::from_rsa_components(&rsa.n, &rsa.e).map_err(Error::into)
-    }
-    jwk::AlgorithmParameters::EllipticCurve(ec) => {
-      DecodingKey::from_ec_components(&ec.x, &ec.y).map_err(Error::into)
-    }
-    _ => Err(JWTError::Internal("Unsupported alg".to_string())),
-  }
+  DecodingKey::from_jwk(jwk).map_err(Error::into)
 }
 
 fn parse_jwks(secret: &[u8]) -> Option<jwk::JwkSet> {
@@ -163,13 +149,13 @@ fn parse_jwks(secret: &[u8]) -> Option<jwk::JwkSet> {
   }
 }
 
-fn get_secret_file_type(secret_string: &str) -> SecretFileType {
+fn get_secret_file_type(secret_string: &str) -> SecretType {
   if secret_string.ends_with(".pem") {
-    SecretFileType::Pem
+    SecretType::Pem
   } else if secret_string.ends_with(".json") {
-    SecretFileType::Jwks
+    SecretType::Jwks
   } else {
-    SecretFileType::Der
+    SecretType::Der
   }
 }
 
