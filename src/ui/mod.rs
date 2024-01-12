@@ -4,7 +4,6 @@ mod help;
 pub mod utils;
 
 use ratatui::{
-  backend::Backend,
   layout::{Alignment, Constraint, Rect},
   text::{Line, Span, Text},
   widgets::{Block, Borders, Paragraph, Tabs, Wrap},
@@ -25,7 +24,7 @@ use crate::app::{App, RouteId};
 
 pub static HIGHLIGHT: &str = "=> ";
 
-pub fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
+pub fn draw(f: &mut Frame<'_>, app: &mut App) {
   let block = Block::default().style(style_main_background(app.light_theme));
   f.render_widget(block, f.size());
 
@@ -73,7 +72,7 @@ pub fn draw<B: Backend>(f: &mut Frame<'_, B>, app: &mut App) {
   draw_app_footer(f, app, chunks[chunks.len() - 1]);
 }
 
-fn draw_app_header<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_app_header(f: &mut Frame<'_>, app: &App, area: Rect) {
   let chunks =
     horizontal_chunks_with_margin(vec![Constraint::Length(50), Constraint::Min(0)], area, 1);
 
@@ -92,7 +91,7 @@ fn draw_app_header<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   draw_header_text(f, app, chunks[1]);
 }
 
-fn draw_app_footer<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_app_footer(f: &mut Frame<'_>, app: &App, area: Rect) {
   // Footer text with correct styling
   let text = format!(
     "JWT UI v{} with ♥ in Rust | Crafted by Auth0 by Okta",
@@ -105,7 +104,7 @@ fn draw_app_footer<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   f.render_widget(paragraph, area);
 }
 
-fn draw_header_text<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_header_text(f: &mut Frame<'_>, app: &App, area: Rect) {
   let text: Vec<Line<'_>> = match app.get_current_route().id {
     RouteId::Decoder => vec![Line::from(
       "<?> help | <tab> switch tabs | <←→> select block | <u> toggle UTC dates | <↑↓> scroll ",
@@ -122,7 +121,7 @@ fn draw_header_text<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   f.render_widget(paragraph, area);
 }
 
-fn draw_app_error<B: Backend>(f: &mut Frame<'_, B>, app: &App, size: Rect) {
+fn draw_app_error(f: &mut Frame<'_>, app: &App, size: Rect) {
   let block = Block::default()
     .title(" Error ")
     .style(style_failure(app.light_theme))

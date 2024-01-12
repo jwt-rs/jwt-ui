@@ -27,7 +27,7 @@ edition = "2021"
 
 [dependencies]
 crossterm = "0.27"
-ratatui = { version = "0.23.0", default-features = false, features = [
+ratatui = { version = "0.25.0", default-features = false, features = [
     'crossterm',
 ] }
 serde = { version = "1.0", features = ["derive"] }
@@ -40,13 +40,13 @@ clap = { version = "4.4", features = [
     "derive",
 ] }
 tui-input = "0.8"
-tui-textarea = { version = "0.2", default-features = false, features = [
-    "ratatui-crossterm",
+tui-textarea = { version = "0.4.0", default-features = false, features = [
+    "crossterm",
 ] }
 backtrace = "0.3"
 human-panic = "1.1"
 base64 = "0.21"
-jsonwebtoken = "9.1"
+jsonwebtoken = "9.2.0"
 chrono = "0.4"
 
 # XCB is a PITA to compile for ARM so disabling the copy feature on ARM for now

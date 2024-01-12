@@ -1,5 +1,4 @@
 use ratatui::{
-  backend::Backend,
   layout::{Constraint, Rect},
   text::Text,
   widgets::{Block, Borders, Paragraph, Wrap},
@@ -12,7 +11,7 @@ use super::utils::{
 };
 use crate::app::{ActiveBlock, App, TextAreaInput};
 
-pub fn draw_encoder<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+pub fn draw_encoder(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let chunks = horizontal_chunks(
     vec![Constraint::Percentage(50), Constraint::Percentage(50)],
     area,
@@ -21,7 +20,7 @@ pub fn draw_encoder<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect)
   draw_encoded_block(f, app, chunks[1]);
 }
 
-fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+fn draw_decoded_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let chunks = vertical_chunks(
     vec![Constraint::Percentage(40), Constraint::Percentage(60)],
     area,
@@ -31,7 +30,7 @@ fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rec
   draw_payload_block(f, app, chunks[1]);
 }
 
-fn draw_encoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_encoded_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   let chunks = vertical_chunks(
     vec![Constraint::Percentage(30), Constraint::Percentage(70)],
     area,
@@ -41,7 +40,7 @@ fn draw_encoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   draw_token_block(f, app, chunks[1]);
 }
 
-fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+fn draw_header_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let block = get_selectable_block(
     "Header: Algorithm & Token Type",
     app.data.encoder.blocks.get_active_route(),
@@ -55,7 +54,7 @@ fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect
   render_text_area_widget(f, area, &mut app.data.encoder.header, app.light_theme);
 }
 
-fn draw_payload_block<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rect) {
+fn draw_payload_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let block = get_selectable_block(
     "Payload: Claims",
     app.data.encoder.blocks.get_active_route(),
@@ -68,7 +67,7 @@ fn draw_payload_block<B: Backend>(f: &mut Frame<'_, B>, app: &mut App, area: Rec
   render_text_area_widget(f, area, &mut app.data.encoder.payload, app.light_theme);
 }
 
-fn draw_secret_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_secret_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   let block = get_selectable_block(
     "Verify Signature",
     app.data.encoder.blocks.get_active_route(),
@@ -93,7 +92,7 @@ fn draw_secret_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   render_input_widget(f, chunks[1], &app.data.encoder.secret, app.light_theme);
 }
 
-fn draw_token_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_token_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   let block = get_selectable_block(
     "Encoded Token",
     app.data.encoder.blocks.get_active_route(),
@@ -118,8 +117,8 @@ fn draw_token_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
 }
 
 // Utility methods
-fn render_text_area_widget<B: Backend>(
-  f: &mut Frame<'_, B>,
+fn render_text_area_widget(
+  f: &mut Frame<'_>,
   area: Rect,
   text_input: &mut TextAreaInput<'_>,
   light_theme: bool,

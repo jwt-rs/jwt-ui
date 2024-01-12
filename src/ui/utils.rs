@@ -2,7 +2,6 @@ use std::{collections::BTreeMap, rc::Rc};
 
 use ratatui::{
   layout::{Constraint, Direction, Layout, Rect},
-  prelude::Backend,
   style::{Color, Modifier, Style},
   text::{Line, Span},
   widgets::{Block, Borders, Paragraph, Wrap},
@@ -185,8 +184,8 @@ pub fn title_with_dual_style<'a>(part_1: String, part_2: String) -> Line<'a> {
   ])
 }
 
-pub fn render_input_widget<B: Backend>(
-  f: &mut Frame<'_, B>,
+pub fn render_input_widget(
+  f: &mut Frame<'_>,
   chunk: Rect,
   text_input: &TextInput,
   light_theme: bool,

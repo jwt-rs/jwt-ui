@@ -1,5 +1,4 @@
 use ratatui::{
-  backend::Backend,
   layout::{Constraint, Rect},
   text::Text,
   widgets::{Block, Paragraph, Wrap},
@@ -12,7 +11,7 @@ use super::utils::{
 };
 use crate::app::{ActiveBlock, App};
 
-pub fn draw_decoder<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+pub fn draw_decoder(f: &mut Frame<'_>, app: &App, area: Rect) {
   let chunks = horizontal_chunks(
     vec![Constraint::Percentage(50), Constraint::Percentage(50)],
     area,
@@ -21,7 +20,7 @@ pub fn draw_decoder<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   draw_decoded_block(f, app, chunks[1]);
 }
 
-fn draw_encoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_encoded_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   let chunks = vertical_chunks(
     vec![Constraint::Percentage(70), Constraint::Percentage(30)],
     area,
@@ -31,7 +30,7 @@ fn draw_encoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   draw_secret_block(f, app, chunks[1]);
 }
 
-fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_decoded_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   let chunks = vertical_chunks(
     vec![Constraint::Percentage(40), Constraint::Percentage(60)],
     area,
@@ -41,7 +40,7 @@ fn draw_decoded_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   draw_payload_block(f, app, chunks[1]);
 }
 
-fn draw_token_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_token_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   let block = get_selectable_block(
     "Encoded Token",
     app.data.decoder.blocks.get_active_route(),
@@ -56,7 +55,7 @@ fn draw_token_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   render_input_widget(f, chunks[0], &app.data.decoder.encoded, app.light_theme);
 }
 
-fn draw_secret_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_secret_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   let block = get_selectable_block(
     "Verify Signature",
     app.data.decoder.blocks.get_active_route(),
@@ -81,7 +80,7 @@ fn draw_secret_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   render_input_widget(f, chunks[1], &app.data.decoder.secret, app.light_theme);
 }
 
-fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_header_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   let block = get_selectable_block(
     "Header: Algorithm & Token Type",
     app.data.decoder.blocks.get_active_route(),
@@ -105,7 +104,7 @@ fn draw_header_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
   f.render_widget(paragraph, chunks[0]);
 }
 
-fn draw_payload_block<B: Backend>(f: &mut Frame<'_, B>, app: &App, area: Rect) {
+fn draw_payload_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   let block = get_selectable_block(
     "Payload: Claims",
     app.data.decoder.blocks.get_active_route(),

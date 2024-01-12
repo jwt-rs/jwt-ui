@@ -1,9 +1,9 @@
-use ratatui::{backend::Backend, layout::Rect, widgets::TableState, Frame};
+use ratatui::{layout::Rect, widgets::TableState, Frame};
 
 use super::{ActiveBlock, App, Route};
 
 pub trait AppResource {
-  fn render<B: Backend>(block: ActiveBlock, f: &mut Frame<'_, B>, app: &mut App, area: Rect);
+  fn render(block: ActiveBlock, f: &mut Frame<'_>, app: &mut App, area: Rect);
 }
 
 pub trait Scrollable {
