@@ -2,6 +2,10 @@
 
 ## Unreleased - 2023-XX-YY
 
+## [1.0.2] - 2024-01-12
+
+- Improved error handling
+
 ## [1.0.1] - 2024-01-12
 
 - Disable audience validation
