@@ -1,9 +1,8 @@
 pub(crate) mod jwt_decoder;
 pub(crate) mod jwt_encoder;
-pub(crate) mod jwt_utils;
 pub(crate) mod key_binding;
 pub(crate) mod models;
-mod utils;
+pub(crate) mod utils;
 
 use ratatui::layout::Rect;
 use tui_input::Input;
@@ -12,9 +11,9 @@ use tui_textarea::TextArea;
 use self::{
   jwt_decoder::{decode_jwt_token, Decoder},
   jwt_encoder::{encode_jwt_token, Encoder},
-  jwt_utils::JWTError,
   key_binding::DEFAULT_KEYBINDING,
   models::{StatefulTable, TabRoute, TabsState},
+  utils::JWTError,
 };
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]

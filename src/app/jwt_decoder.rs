@@ -1,4 +1,7 @@
-use std::collections::{BTreeMap, HashSet};
+use std::{
+  collections::{BTreeMap, HashSet},
+  str::from_utf8,
+};
 
 use chrono::{TimeZone, Utc};
 use jsonwebtoken::{
@@ -8,10 +11,10 @@ use serde_derive::{Deserialize, Serialize};
 use serde_json::{to_string_pretty, Value};
 
 use super::{
-  jwt_utils::{
+  models::{ScrollableTxt, TabRoute, TabsState},
+  utils::{
     decoding_key_from_jwks_secret, get_secret_from_file_or_input, JWTError, JWTResult, SecretType,
   },
-  models::{ScrollableTxt, TabRoute, TabsState},
   ActiveBlock, App, Route, RouteId, TextInput,
 };
 
@@ -268,9 +271,7 @@ fn decoding_key_from_secret(
     Algorithm::HS256 | Algorithm::HS384 | Algorithm::HS512 => match file_type {
       SecretType::Plain => Ok(DecodingKey::from_secret(&secret)),
       SecretType::Jwks => decoding_key_from_jwks_secret(&secret, header),
-      SecretType::B64 => {
-        DecodingKey::from_base64_secret(std::str::from_utf8(&secret)?).map_err(Error::into)
-      }
+      SecretType::B64 => DecodingKey::from_base64_secret(from_utf8(&secret)?).map_err(Error::into),
       _ => Err(JWTError::Internal(format!(
         "Invalid secret file type for {alg:?}"
       ))),

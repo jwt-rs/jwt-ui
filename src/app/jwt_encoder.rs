@@ -2,8 +2,8 @@ use jsonwebtoken::{errors::Error, Algorithm, EncodingKey, Header};
 
 use super::{
   jwt_decoder::Payload,
-  jwt_utils::{get_secret_from_file_or_input, JWTError, JWTResult, SecretType},
   models::{ScrollableTxt, TabRoute, TabsState},
+  utils::{get_secret_from_file_or_input, JWTError, JWTResult, SecretType},
   ActiveBlock, App, Route, RouteId, TextAreaInput, TextInput,
 };
 
@@ -156,7 +156,7 @@ mod tests {
   use tui_textarea::TextArea;
 
   use super::*;
-  use crate::app::utils::slurp_file;
+  use crate::app::{utils::slurp_file, utils::strip_leading_symbol};
 
   #[test]
   fn test_encode_jwt_token_with_valid_payload_and_defaults() {
@@ -218,7 +218,7 @@ mod tests {
 
     let secret_string = "@./test_data/test_rsa_public_key.pem";
 
-    let secret = slurp_file(&secret_string.chars().skip(1).collect::<String>()).unwrap();
+    let secret = slurp_file(strip_leading_symbol(secret_string)).unwrap();
 
     let decoded = jsonwebtoken::decode::<Payload>(
       &app.data.encoder.encoded.get_txt(),
