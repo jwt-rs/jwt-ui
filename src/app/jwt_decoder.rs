@@ -8,7 +8,9 @@ use serde_derive::{Deserialize, Serialize};
 use serde_json::{to_string_pretty, Value};
 
 use super::{
-  jwt_utils::{decoding_key_from_jwks_secret, get_secret_from_file_or_input, JWTError, JWTResult, SecretType},
+  jwt_utils::{
+    decoding_key_from_jwks_secret, get_secret_from_file_or_input, JWTError, JWTResult, SecretType,
+  },
   models::{ScrollableTxt, TabRoute, TabsState},
   ActiveBlock, App, Route, RouteId, TextInput,
 };

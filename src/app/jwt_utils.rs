@@ -63,7 +63,10 @@ pub enum SecretType {
   Plain,
 }
 
-pub fn get_secret_from_file_or_input(alg: &Algorithm, secret_string: &str) -> (JWTResult<Vec<u8>>, SecretType) {
+pub fn get_secret_from_file_or_input(
+  alg: &Algorithm,
+  secret_string: &str,
+) -> (JWTResult<Vec<u8>>, SecretType) {
   return match alg {
     Algorithm::HS256 | Algorithm::HS384 | Algorithm::HS512 => {
       if secret_string.starts_with('@') {
