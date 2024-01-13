@@ -2,7 +2,7 @@ use jsonwebtoken::{errors::Error, Algorithm, EncodingKey, Header};
 
 use super::{
   jwt_decoder::Payload,
-  jwt_utils::{get_secret, JWTError, JWTResult, SecretType},
+  jwt_utils::{get_secret_from_file_or_input, JWTError, JWTResult, SecretType},
   models::{ScrollableTxt, TabRoute, TabsState},
   ActiveBlock, App, Route, RouteId, TextAreaInput, TextInput,
 };
@@ -108,7 +108,7 @@ pub fn encode_jwt_token(app: &mut App) {
 }
 
 pub fn encoding_key_from_secret(alg: &Algorithm, secret_string: &str) -> JWTResult<EncodingKey> {
-  let (secret, file_type) = get_secret(alg, secret_string);
+  let (secret, file_type) = get_secret_from_file_or_input(alg, secret_string);
   let secret = secret?;
 
   match alg {

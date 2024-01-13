@@ -8,7 +8,7 @@ use serde_derive::{Deserialize, Serialize};
 use serde_json::{to_string_pretty, Value};
 
 use super::{
-  jwt_utils::{decoding_key_from_jwks_secret, get_secret, JWTError, JWTResult, SecretType},
+  jwt_utils::{decoding_key_from_jwks_secret, get_secret_from_file_or_input, JWTError, JWTResult, SecretType},
   models::{ScrollableTxt, TabRoute, TabsState},
   ActiveBlock, App, Route, RouteId, TextInput,
 };
@@ -260,7 +260,7 @@ fn decoding_key_from_secret(
   secret_string: &str,
   header: Option<Header>,
 ) -> JWTResult<DecodingKey> {
-  let (secret, file_type) = get_secret(alg, secret_string);
+  let (secret, file_type) = get_secret_from_file_or_input(alg, secret_string);
   let secret = secret?;
   match alg {
     Algorithm::HS256 | Algorithm::HS384 | Algorithm::HS512 => match file_type {
