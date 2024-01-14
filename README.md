@@ -31,6 +31,20 @@ Crafted by
 
 <img src="artwork/Auth0byOkta_logo.svg" alt="Auth0 by Okta" style="width:120px;"/>
 
+## Features
+
+- Fully offline
+- Supports secrets as plain text, file path (beginning with `@`) or base64 encoded string (beginning with `b64:`). Supported secret formats:
+  - **HMAC** - `HS{256,384,512}`: Plain text, base64 encoded string, JWKS (JSON text and `.json` file)
+  - **RSA** - `RS{256,384,512}`, `PS{256,384,512}`: PEM file, DER file, PKCS8 file, JWKS (JSON text and `.json` file)
+  - **ECDSA** - `ES{256,384}`: PEM file, DER file, PKCS8 file, JWKS (JSON text and `.json` file)
+  - **EdDSA** : PEM file, DER file, PKCS8 file, JWKS (JSON text and `.json` file)
+  - - Note: JWKS support is only for decoding
+- Dark/Light themes
+- Sensible keyboard shortcuts
+- Copy to clipboard
+- STDOUT mode
+
 ## Installation
 
 ### Homebrew (Mac & Linux)
@@ -97,20 +111,29 @@ Binaries for macOS, Linux and Windows are available on the [releases](https://gi
    1. Use 7-Zip or TarTool to unpack the tar file.
    2. Run the executable file `jwtui.exe`
 
-## Troubleshooting
-
-> Note: On Debian/Ubuntu you might need to install `libxcb-xfixes0-dev` and `libxcb-shape0-dev`. On Fedora `libxcb` and `libxcb-devel` would be needed.
-
-> Note: On Linux you might need to have package `xorg-dev` (Debian/Ubuntu) or `xorg-x11-server-devel` (Fedora) or equivalent installed for the copy to clipboard features to work
-
 ## USAGE:
 
-```bash
+```shell
+# Start UI
 jwtui
 
-#or
-
+# Start UI with prefilled token to decode and options
 jwtui [OPTIONS] [TOKEN]
+
+# Start UI with prefilled token to decode and JWKS secret from URL
+jwtui -S $(curl https://domain.auth0.com/.well-known/jwks.json) [TOKEN]
+
+# Print decoded token to stdout with HMAC plain text secret
+jwtui -s -S 'plain_text_secret' [TOKEN]
+
+# Print decoded token to stdout with HMAC base64 encoded secret
+jwtui -s -S 'b64:eW91ci0yNTYtYml0LXNlY3JldAo=' [TOKEN]
+
+# Print decoded token to stdout as JSON
+jwtui -sj -S '@./secret.pem' [TOKEN]
+
+# Print decoded token to stdout with JWKS secret from url
+jwtui -s -S $(curl https://domain.auth0.com/.well-known/jwks.json) [TOKEN]
 ```
 
 Press `?` while running the app to see keybindings
@@ -119,20 +142,15 @@ Arguments:
 [TOKEN] JWT token to decode [mandatory for stdout mode, optional for TUI mode]
 
 Options:
-`-s, --stdout` whether the CLI should run in TUI mode or just print to stdout
-`-j, --json` whether stdout should be formatted as JSON
-`-t, --tick-rate <TICK_RATE>` Set the tick rate (milliseconds): the lower the number the higher the FPS. Must be less than 1000 [default: 250]
-`-S, --secret <SECRET>` secret for validating the JWT [default: ]
-`-h, --help` Print help
-`-V, --version` Print version
 
-## Limitations/Known issues
+- `-s, --stdout` whether the CLI should run in TUI mode or just print to stdout
+- `-j, --json` whether stdout should be formatted as JSON
+- `-t, --tick-rate <TICK_RATE>` Set the tick rate (milliseconds): the lower the number the higher the FPS. Must be less than 1000 [default: 250]
+- `-S, --secret <SECRET>` secret for validating the JWT. Can be text, file path (beginning with @) or base64 encoded string (beginning with b64:) [default: ]
+- `-h, --help` Print help
+- `-V, --version` Print version
 
-## Features
-
-- Fully offline
-- Dark/Light themes
-- Sensible keyboard shortcuts
+If you are looking for a non TUI CLI, check out [jwt-cli](https://github.com/mike-engel/jwt-cli)
 
 ## Screenshots
 
@@ -147,6 +165,16 @@ Options:
 ### Stdout
 
 ![UI](screenshots/stdout.png)
+
+## Troubleshooting
+
+> Note: On Debian/Ubuntu you might need to install `libxcb-xfixes0-dev` and `libxcb-shape0-dev`. On Fedora `libxcb` and `libxcb-devel` would be needed.
+
+> Note: On Linux you might need to have package `xorg-dev` (Debian/Ubuntu) or `xorg-x11-server-devel` (Fedora) or equivalent installed for the copy to clipboard features to work
+
+## Limitations/Known issues
+
+- Copy to clipboard is not supported on `aarch64` and `arm` machines.
 
 ## Libraries used
 

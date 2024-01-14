@@ -43,7 +43,7 @@ pub struct Cli {
   /// Set the tick rate (milliseconds): the lower the number the higher the FPS. Must be less than 1000.
   #[arg(short, long, value_parser, default_value_t = 250)]
   pub tick_rate: u64,
-  /// secret for validating the JWT
+  /// secret for validating the JWT. Can be text, file path (beginning with @) or base64 encoded string (beginning with b64:)
   #[arg(short = 'S', long, value_parser, default_value = "")]
   pub secret: String,
 }
