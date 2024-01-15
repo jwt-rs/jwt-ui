@@ -38,7 +38,7 @@ docker:
 
 ## Run Docker Image locally
 docker-run:    
-	@docker run --rm ${IMAGE}
+	@docker run --rm -it ${IMAGE}
 
 ## Analyse for unsafe usage - `cargo install cargo-geiger`
 analyse:  

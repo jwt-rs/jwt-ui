@@ -94,7 +94,7 @@ curl https://raw.githubusercontent.com/jwt-rs/jwt-ui/main/deployment/getLatest.s
 Run JWT UI as a Docker container.
 
 ```bash
-docker run --rm deepu105/jwt-ui
+docker run --rm -it deepu105/jwt-ui
 ```
 
 You can also clone this repo and run `make docker` to build a docker image locally and run it using the above command
