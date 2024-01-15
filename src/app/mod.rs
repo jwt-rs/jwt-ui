@@ -190,7 +190,6 @@ impl App {
   pub fn push_navigation_route(&mut self, route: Route) {
     self.navigation_stack.push(route);
     self.is_routing = true;
-    self.data.error = String::default();
   }
 
   pub fn pop_navigation_stack(&mut self) -> Option<Route> {
@@ -211,16 +210,19 @@ impl App {
     self.main_tabs.next();
     let route = self.main_tabs.get_active_route();
     self.push_navigation_route(*route);
+    self.data.error = String::default();
   }
 
   pub fn route_decoder(&mut self) {
     let route = self.main_tabs.set_index(0).route;
     self.push_navigation_route(route);
+    self.data.error = String::default();
   }
 
   pub fn route_encoder(&mut self) {
     let route = self.main_tabs.set_index(1).route;
     self.push_navigation_route(route);
+    self.data.error = String::default();
   }
 
   pub fn on_tick(&mut self) {

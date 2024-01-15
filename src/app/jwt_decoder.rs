@@ -71,8 +71,14 @@ impl Decoder {
   pub fn set_decoded(&mut self, decoded: Option<TokenData<Payload>>) {
     match decoded.as_ref() {
       Some(payload) => {
-        self.header = ScrollableTxt::new(to_string_pretty(&payload.header).unwrap());
-        self.payload = ScrollableTxt::new(to_string_pretty(&payload.claims).unwrap())
+        let header = to_string_pretty(&payload.header).unwrap();
+        if header != self.header.get_txt() {
+          self.header = ScrollableTxt::new(header);
+        }
+        let payload = to_string_pretty(&payload.claims).unwrap();
+        if payload != self.payload.get_txt() {
+          self.payload = ScrollableTxt::new(payload);
+        }
       }
       None => {
         self.header = ScrollableTxt::default();

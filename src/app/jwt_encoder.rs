@@ -53,7 +53,6 @@ impl Encoder<'_> {
 }
 
 pub fn encode_jwt_token(app: &mut App) {
-  app.data.error = String::new();
   let header = app.data.encoder.header.input.lines().join("\n");
   if header.is_empty() {
     app.handle_error(String::from("Header should not be empty").into());
@@ -79,20 +78,35 @@ pub fn encode_jwt_token(app: &mut App) {
               let token = jsonwebtoken::encode(&header, &payload, &encoding_key);
               match token {
                 Ok(token) => {
-                  app.data.encoder.encoded = ScrollableTxt::new(token);
-                  app.data.encoder.signature_verified = true;
+                  if token != app.data.encoder.encoded.get_txt() {
+                    app.data.encoder.encoded = ScrollableTxt::new(token);
+                    app.data.encoder.signature_verified = true;
+                  }
                 }
-                Err(e) => app.handle_error(e.into()),
+                Err(e) => {
+                  app.handle_error(e.into());
+                  return;
+                }
               }
             }
-            Err(e) => app.handle_error(e),
+            Err(e) => {
+              app.handle_error(e);
+              return;
+            }
           }
         }
-        Err(e) => app.handle_error(format!("Error parsing payload: {:}", e).into()),
+        Err(e) => {
+          app.handle_error(format!("Error parsing payload: {:}", e).into());
+          return;
+        }
       }
     }
-    Err(e) => app.handle_error(format!("Error parsing header: {:}", e).into()),
+    Err(e) => {
+      app.handle_error(format!("Error parsing header: {:}", e).into());
+      return;
+    }
   }
+  app.data.error = String::new();
 }
 
 pub fn encoding_key_from_secret(alg: &Algorithm, secret_string: &str) -> JWTResult<EncodingKey> {
