@@ -5,6 +5,7 @@ pub mod utils;
 
 use ratatui::{
   layout::{Alignment, Constraint, Rect},
+  style::Modifier,
   text::{Line, Span, Text},
   widgets::{Block, Borders, Paragraph, Tabs, Wrap},
   Frame,
@@ -15,9 +16,8 @@ use self::{
   encoder::draw_encoder,
   help::draw_help,
   utils::{
-    horizontal_chunks_with_margin, layout_block, style_default, style_failure, style_help,
-    style_logo, style_main_background, style_primary, style_secondary, title_style_logo,
-    vertical_chunks,
+    horizontal_chunks_with_margin, style_default, style_failure, style_header, style_header_text,
+    style_help, style_main_background, style_primary, style_secondary, vertical_chunks,
   },
 };
 use crate::app::{App, RouteId};
@@ -31,31 +31,32 @@ pub fn draw(f: &mut Frame<'_>, app: &mut App) {
   let chunks = if !app.data.error.is_empty() {
     vertical_chunks(
       vec![
+        Constraint::Length(1), // title
         Constraint::Length(3), // header
         Constraint::Length(3), // error
-        Constraint::Min(1),    // main area
-        Constraint::Length(3), // footer
+        Constraint::Min(0),    // main area
       ],
       f.size(),
     )
   } else {
     vertical_chunks(
       vec![
+        Constraint::Length(1), // title
         Constraint::Length(3), // header
-        Constraint::Min(1),    // main area
-        Constraint::Length(3), // footer
+        Constraint::Min(0),    // main area
       ],
       f.size(),
     )
   };
 
-  draw_app_header(f, app, chunks[0]);
+  draw_app_title(f, app, chunks[0]);
+  draw_app_header(f, app, chunks[1]);
 
   if !app.data.error.is_empty() {
-    draw_app_error(f, app, chunks[1]);
+    draw_app_error(f, app, chunks[2]);
   }
 
-  let main_chunk = chunks[chunks.len() - 2];
+  let main_chunk = chunks[chunks.len() - 1];
 
   match app.get_current_route().id {
     RouteId::Help => {
@@ -68,8 +69,25 @@ pub fn draw(f: &mut Frame<'_>, app: &mut App) {
       draw_encoder(f, app, main_chunk);
     }
   }
+}
 
-  draw_app_footer(f, app, chunks[chunks.len() - 1]);
+fn draw_app_title(f: &mut Frame<'_>, app: &App, area: Rect) {
+  let title = Paragraph::new(Span::styled(
+    app.title,
+    style_header_text(app.light_theme).add_modifier(Modifier::BOLD),
+  ))
+  .style(style_header())
+  .block(Block::default())
+  .alignment(Alignment::Left);
+  f.render_widget(title, area);
+
+  let text = format!("v{} with ♥ from Auth0 by Okta ", env!("CARGO_PKG_VERSION"),);
+
+  let meta = Paragraph::new(Span::styled(text, style_header_text(app.light_theme)))
+    .style(style_header())
+    .block(Block::default())
+    .alignment(Alignment::Right);
+  f.render_widget(meta, area);
 }
 
 fn draw_app_header(f: &mut Frame<'_>, app: &App, area: Rect) {
@@ -83,25 +101,12 @@ fn draw_app_header(f: &mut Frame<'_>, app: &App, area: Rect) {
     .map(|t| Line::from(Span::styled(&t.title, style_default(app.light_theme))))
     .collect();
   let tabs = Tabs::new(titles)
-    .block(layout_block(title_style_logo(app.title, app.light_theme)))
+    .block(Block::default().borders(Borders::ALL))
     .highlight_style(style_secondary(app.light_theme))
     .select(app.main_tabs.index);
 
   f.render_widget(tabs, area);
   draw_header_text(f, app, chunks[1]);
-}
-
-fn draw_app_footer(f: &mut Frame<'_>, app: &App, area: Rect) {
-  // Footer text with correct styling
-  let text = format!(
-    "JWT UI v{} with ♥ in Rust | Crafted by Auth0 by Okta",
-    env!("CARGO_PKG_VERSION"),
-  );
-  let mut text = Text::from(text);
-  text.patch_style(style_logo(app.light_theme));
-
-  let paragraph = Paragraph::new(text).block(Block::default().borders(Borders::ALL));
-  f.render_widget(paragraph, area);
 }
 
 fn draw_header_text(f: &mut Frame<'_>, app: &App, area: Rect) {
