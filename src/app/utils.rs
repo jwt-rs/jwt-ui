@@ -234,7 +234,7 @@ mod tests {
   fn test_slurp_file_nonexistent() {
     let file_name = "nonexistent.txt";
 
-    slurp_file(file_name).unwrap();
+    slurp_file(file_name.to_string()).unwrap();
   }
 
   #[test]

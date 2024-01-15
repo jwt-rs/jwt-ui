@@ -59,7 +59,7 @@ fn draw_secret_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   app.update_block_map(get_route(ActiveBlock::DecoderSecret), area);
 
   let block = get_selectable_block(
-    "Verify Signature",
+    check_verification_status(app.data.decoder.signature_verified),
     *app.data.decoder.blocks.get_active_block() == ActiveBlock::DecoderSecret,
     Some(&app.data.decoder.secret.input_mode),
     app.light_theme,
@@ -79,6 +79,14 @@ fn draw_secret_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   f.render_widget(paragraph, chunks[0]);
 
   render_input_widget(f, chunks[1], &app.data.decoder.secret, app.light_theme);
+}
+
+fn check_verification_status(signature_verified: bool) -> &'static str {
+  if signature_verified {
+    "Signature: ✅ Valid"
+  } else {
+    "Signature: ❌ Invalid"
+  }
 }
 
 fn draw_header_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
@@ -183,7 +191,7 @@ mod tests {
       r#"││                                              │││  "name": "John Doe",                           │"#,
       r#"│└──────────────────────────────────────────────┘││  "sub": "1234567890"                           │"#,
       r#"└────────────────────────────────────────────────┘│}                                               │"#,
-      r#"┌ Verify Signature ──────────────────────────────┐│                                                │"#,
+      r#"┌ Signature: ✅ Valid ───────────────────────────┐│                                                │"#,
       r#"│Prepend 'b64:' for base64 encoded secret. Prepen││                                                │"#,
       r#"│┌──────────────────────────────────────────────┐││                                                │"#,
       r#"││secret                                        │││                                                │"#,
@@ -202,7 +210,7 @@ mod tests {
                 .add_modifier(Modifier::BOLD),
             );
           }
-          (51..=82, 0) | (51..=67, 8) | (1..=18, 14) => {
+          (51..=82, 0) | (51..=67, 8) | (1..=21, 14) => {
             expected.get_mut(col, row).set_style(
               Style::default()
                 .fg(COLOR_WHITE)

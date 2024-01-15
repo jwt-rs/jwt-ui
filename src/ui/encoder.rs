@@ -73,7 +73,7 @@ fn draw_secret_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   app.update_block_map(get_route(ActiveBlock::EncoderSecret), area);
 
   let block = get_selectable_block(
-    "Verify Signature",
+    "Signing Secret",
     *app.data.encoder.blocks.get_active_block() == ActiveBlock::EncoderSecret,
     Some(&app.data.encoder.secret.input_mode),
     app.light_theme,
@@ -188,7 +188,7 @@ mod tests {
       .unwrap();
 
     let mut expected = Buffer::with_lines(vec![
-      r#"┌ Header: Algorithm & Token Type (<enter> edit | ┐┌ Verify Signature ──────────────────────────────┐"#,
+      r#"┌ Header: Algorithm & Token Type (<enter> edit | ┐┌ Signing Secret ────────────────────────────────┐"#,
       r#"│┌──────────────────────────────────────────────┐││Prepend 'b64:' for base64 encoded secret. Prepen│"#,
       r#"││{                                             │││┌──────────────────────────────────────────────┐│"#,
       r#"││  "alg": "HS256",                             ││││secret                                        ││"#,
@@ -228,7 +228,7 @@ mod tests {
                 .add_modifier(Modifier::BOLD),
             );
           }
-          (51..=68, 0) | (51..=65, 6) | (1..=17, 8) => {
+          (51..=66, 0) | (51..=65, 6) | (1..=17, 8) => {
             expected.get_mut(col, row).set_style(
               Style::default()
                 .fg(COLOR_WHITE)
