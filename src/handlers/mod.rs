@@ -60,7 +60,11 @@ pub fn handle_key_events(key: Key, key_event: KeyEvent, app: &mut App) {
       }
       _ if key == DEFAULT_KEYBINDING.cycle_main_views.key => app.cycle_main_routes(),
 
-      _ if key == DEFAULT_KEYBINDING.toggle_input_edit.key => handle_edit_event(app),
+      _ if key == DEFAULT_KEYBINDING.toggle_input_edit.key
+        || key == DEFAULT_KEYBINDING.toggle_input_edit.alt.unwrap() =>
+      {
+        handle_edit_event(app)
+      }
 
       _ if key == DEFAULT_KEYBINDING.copy_to_clipboard.key => handle_copy_event(app),
 
@@ -283,7 +287,7 @@ mod tests {
     app.route_decoder();
     assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Normal);
 
-    let key_evt = KeyEvent::from(KeyCode::Char('e'));
+    let key_evt = KeyEvent::from(KeyCode::Enter);
     handle_key_events(Key::from(key_evt), key_evt, &mut app);
     assert_eq!(app.data.decoder.encoded.input_mode, InputMode::Editing);
 

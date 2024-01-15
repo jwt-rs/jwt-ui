@@ -177,7 +177,7 @@ mod tests {
       .unwrap();
 
     let mut expected = Buffer::with_lines(vec![
-      r#"┌ Header: Algorithm & Token Type (<e> edit | <c> ┐┌ Verify Signature ──────────────────────────────┐"#,
+      r#"┌ Header: Algorithm & Token Type (<enter> edit | ┐┌ Verify Signature ──────────────────────────────┐"#,
       r#"│┌──────────────────────────────────────────────┐││Prepend 'b64:' for base64 encoded secret. Prepen│"#,
       r#"││{                                             │││┌──────────────────────────────────────────────┐│"#,
       r#"││  "alg": "HS256",                             ││││secret                                        ││"#,

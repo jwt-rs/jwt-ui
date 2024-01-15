@@ -24,7 +24,6 @@ generate_keybindings! {
   esc,
   help,
   refresh,
-  submit,
   toggle_theme,
   cycle_main_views,
   jump_to_decoder,
@@ -91,12 +90,6 @@ pub const DEFAULT_KEYBINDING: KeyBindings = KeyBindings {
     key: Key::Char('?'),
     alt: None,
     desc: "Help page",
-    context: HContext::General,
-  },
-  submit: KeyBinding {
-    key: Key::Enter,
-    alt: None,
-    desc: "Select item",
     context: HContext::General,
   },
   refresh: KeyBinding {
@@ -184,8 +177,8 @@ pub const DEFAULT_KEYBINDING: KeyBindings = KeyBindings {
     context: HContext::Decoder,
   },
   toggle_input_edit: KeyBinding {
-    key: Key::Char('e'),
-    alt: None,
+    key: Key::Enter,
+    alt: Some(Key::Char('e')),
     desc: "Enable text input edit mode",
     context: HContext::Editable,
   },

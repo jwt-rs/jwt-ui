@@ -223,7 +223,7 @@ pub fn render_input_widget(
 pub fn get_hint(input_mode: &InputMode, is_active: bool) -> &str {
   if is_active {
     match input_mode {
-      InputMode::Normal => "(<e> edit | <c> copy) ",
+      InputMode::Normal => "(<enter> edit | <c> copy) ",
       InputMode::Editing => "(<esc> stop editing | <ctrl+d> clear) ",
     }
   } else {
