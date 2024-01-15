@@ -4,6 +4,8 @@ pub(crate) mod key_binding;
 pub(crate) mod models;
 pub(crate) mod utils;
 
+use std::collections::HashMap;
+
 use ratatui::layout::Rect;
 use tui_input::Input;
 use tui_textarea::TextArea;
@@ -16,7 +18,7 @@ use self::{
   utils::JWTError,
 };
 
-#[derive(Clone, Copy, Eq, PartialEq, Debug)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug, Hash)]
 pub enum ActiveBlock {
   Help,
   DecoderToken,
@@ -29,14 +31,14 @@ pub enum ActiveBlock {
   EncoderSecret,
 }
 
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Copy, Eq, Hash, PartialEq, Debug)]
 pub enum RouteId {
   Help,
   Decoder,
   Encoder,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct Route {
   pub id: RouteId,
   pub active_block: ActiveBlock,
@@ -110,6 +112,7 @@ pub struct App {
   pub confirm: bool,
   pub light_theme: bool,
   pub help_docs: StatefulTable<Vec<String>>,
+  pub block_map: HashMap<Route, Rect>,
   pub data: Data,
 }
 
@@ -143,6 +146,7 @@ impl Default for App {
       confirm: false,
       light_theme: false,
       help_docs: StatefulTable::with_items(key_binding::get_help_docs()),
+      block_map: HashMap::new(),
       data: Data::default(),
     }
   }
@@ -159,6 +163,14 @@ impl App {
       },
       ..App::default()
     }
+  }
+
+  pub fn update_block_map(&mut self, block: Route, area: Rect) {
+    self
+      .block_map
+      .entry(block)
+      .and_modify(|w| *w = area)
+      .or_insert(area);
   }
 
   pub fn refresh(&mut self) {
@@ -197,17 +209,17 @@ impl App {
 
   pub fn cycle_main_routes(&mut self) {
     self.main_tabs.next();
-    let route = self.main_tabs.get_active_route().clone();
-    self.push_navigation_route(route);
+    let route = self.main_tabs.get_active_route();
+    self.push_navigation_route(*route);
   }
 
   pub fn route_decoder(&mut self) {
-    let route = self.main_tabs.set_index(0).route.clone();
+    let route = self.main_tabs.set_index(0).route;
     self.push_navigation_route(route);
   }
 
   pub fn route_encoder(&mut self) {
-    let route = self.main_tabs.set_index(1).route.clone();
+    let route = self.main_tabs.set_index(1).route;
     self.push_navigation_route(route);
   }
 

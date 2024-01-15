@@ -2,7 +2,7 @@ use jsonwebtoken::{errors::Error, Algorithm, EncodingKey, Header};
 
 use super::{
   jwt_decoder::Payload,
-  models::{ScrollableTxt, TabRoute, TabsState},
+  models::{BlockState, ScrollableTxt},
   utils::{get_secret_from_file_or_input, JWTError, JWTResult, SecretType},
   ActiveBlock, App, Route, RouteId, TextAreaInput, TextInput,
 };
@@ -14,7 +14,7 @@ pub struct Encoder<'a> {
   pub payload: TextAreaInput<'a>,
   pub secret: TextInput,
   pub signature_verified: bool,
-  pub blocks: TabsState,
+  pub blocks: BlockState,
 }
 
 impl Encoder<'_> {
@@ -29,34 +29,22 @@ impl Encoder<'_> {
     Self {
       header,
       secret: TextInput::new(secret),
-      blocks: TabsState::new(vec![
-        TabRoute {
-          title: "".into(),
-          route: Route {
-            id: RouteId::Encoder,
-            active_block: ActiveBlock::EncoderHeader,
-          },
+      blocks: BlockState::new(vec![
+        Route {
+          id: RouteId::Encoder,
+          active_block: ActiveBlock::EncoderHeader,
         },
-        TabRoute {
-          title: "".into(),
-          route: Route {
-            id: RouteId::Encoder,
-            active_block: ActiveBlock::EncoderPayload,
-          },
+        Route {
+          id: RouteId::Encoder,
+          active_block: ActiveBlock::EncoderPayload,
         },
-        TabRoute {
-          title: "".into(),
-          route: Route {
-            id: RouteId::Encoder,
-            active_block: ActiveBlock::EncoderSecret,
-          },
+        Route {
+          id: RouteId::Encoder,
+          active_block: ActiveBlock::EncoderSecret,
         },
-        TabRoute {
-          title: "".into(),
-          route: Route {
-            id: RouteId::Encoder,
-            active_block: ActiveBlock::EncoderToken,
-          },
+        Route {
+          id: RouteId::Encoder,
+          active_block: ActiveBlock::EncoderToken,
         },
       ]),
       ..Encoder::default()

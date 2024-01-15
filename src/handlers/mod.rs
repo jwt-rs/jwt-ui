@@ -1,4 +1,5 @@
-use crossterm::event::{Event, KeyEvent, MouseEvent, MouseEventKind};
+use crossterm::event::{Event, KeyEvent, MouseButton, MouseEvent, MouseEventKind};
+use ratatui::layout::Rect;
 use tui_input::{backend::crossterm::EventHandler, Input};
 use tui_textarea::TextArea;
 
@@ -78,6 +79,7 @@ pub fn handle_mouse_events(mouse: MouseEvent, app: &mut App) {
     // mouse scrolling is inverted
     MouseEventKind::ScrollDown => handle_block_scroll(app, true, true, false),
     MouseEventKind::ScrollUp => handle_block_scroll(app, false, true, false),
+    MouseEventKind::Down(MouseButton::Left) => handle_mouse_btn_press(app, mouse),
     _ => { /* do nothing */ }
   }
 }
@@ -185,12 +187,11 @@ fn handle_route_events(key: Key, app: &mut App) {
         _ if key == DEFAULT_KEYBINDING.toggle_ignore_exp.key => {
           app.data.decoder.ignore_exp = !app.data.decoder.ignore_exp;
         }
-        // as these are tabs with index the order here matters, at least for readability
-        _ => {}
+        _ => { /* Do nothing */ }
       };
     }
     RouteId::Encoder => {
-      //   todo!()
+      //   nothing to handle
     }
     _ => { /* Do nothing */ }
   }
@@ -201,11 +202,11 @@ fn handle_left_key_events(app: &mut App) {
   match app.get_current_route().id {
     RouteId::Decoder => {
       app.data.decoder.blocks.previous();
-      app.push_navigation_route(app.data.decoder.blocks.get_active_route().clone());
+      app.push_navigation_route(*app.data.decoder.blocks.get_active_item());
     }
     RouteId::Encoder => {
       app.data.encoder.blocks.previous();
-      app.push_navigation_route(app.data.encoder.blocks.get_active_route().clone());
+      app.push_navigation_route(*app.data.encoder.blocks.get_active_item());
     }
     RouteId::Help => { /* Do nothing */ }
   }
@@ -216,14 +217,44 @@ fn handle_right_key_events(app: &mut App) {
   match app.get_current_route().id {
     RouteId::Decoder => {
       app.data.decoder.blocks.next();
-      app.push_navigation_route(app.data.decoder.blocks.get_active_route().clone());
+      app.push_navigation_route(*app.data.decoder.blocks.get_active_item());
     }
     RouteId::Encoder => {
       app.data.encoder.blocks.next();
-      app.push_navigation_route(app.data.encoder.blocks.get_active_route().clone());
+      app.push_navigation_route(*app.data.encoder.blocks.get_active_item());
     }
     RouteId::Help => { /* Do nothing */ }
   }
+}
+
+fn handle_mouse_btn_press(app: &mut App, mouse_event: MouseEvent) {
+  if let Some(data) = app
+    .block_map
+    .iter()
+    .filter(|i| {
+      i.0.id == app.get_current_route().id
+        && i
+          .1
+          .intersects(Rect::new(mouse_event.column, mouse_event.row, 1, 1))
+    })
+    .collect::<Vec<_>>()
+    .first()
+  {
+    let selected_route = *data.0;
+
+    // route specific events
+    match app.get_current_route().id {
+      RouteId::Decoder => {
+        app.data.decoder.blocks.set_item(selected_route);
+        app.push_navigation_route(*app.data.decoder.blocks.get_active_item());
+      }
+      RouteId::Encoder => {
+        app.data.encoder.blocks.set_item(selected_route);
+        app.push_navigation_route(*app.data.encoder.blocks.get_active_item());
+      }
+      RouteId::Help => { /* Do nothing */ }
+    }
+  };
 }
 
 fn handle_block_scroll(app: &mut App, up: bool, is_mouse: bool, page: bool) {
@@ -330,7 +361,7 @@ mod tests {
 
     app.data.encoder.header.input_mode = InputMode::Editing;
 
-    let route = app.main_tabs.set_index(1).route.clone();
+    let route = app.main_tabs.set_index(1).route;
     app.push_navigation_route(route);
 
     assert_eq!(app.data.encoder.header.input_mode, InputMode::Editing);

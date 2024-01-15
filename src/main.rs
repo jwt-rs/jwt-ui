@@ -15,6 +15,7 @@ use app::{jwt_decoder::print_decoded_token, App};
 use banner::BANNER;
 use clap::Parser;
 use crossterm::{
+  event::{DisableMouseCapture, EnableMouseCapture},
   execute,
   terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -89,7 +90,7 @@ fn start_ui(cli: Cli) -> Result<()> {
   // Terminal initialization
   let mut stdout = stdout();
   // not capturing mouse to make text select/copy possible
-  execute!(stdout, EnterAlternateScreen)?;
+  execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
   // terminal backend for cross platform support
   let backend = CrosstermBackend::new(stdout);
   let mut terminal = Terminal::new(backend)?;
@@ -145,7 +146,11 @@ fn start_ui(cli: Cli) -> Result<()> {
 // shutdown the CLI and show terminal
 fn shutdown(mut terminal: Terminal<CrosstermBackend<Stdout>>) -> io::Result<()> {
   disable_raw_mode()?;
-  execute!(terminal.backend_mut(), LeaveAlternateScreen,)?;
+  execute!(
+    terminal.backend_mut(),
+    LeaveAlternateScreen,
+    DisableMouseCapture
+  )?;
   terminal.show_cursor()?;
   Ok(())
 }

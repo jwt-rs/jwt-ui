@@ -67,7 +67,8 @@ impl Events {
           .unwrap_or_else(|| Duration::from_secs(0));
         // poll for tick rate duration, if no event, sent tick event.
         if event::poll(timeout).unwrap() {
-          match event::read().unwrap() {
+          let e = event::read().unwrap();
+          match e {
             CEvent::Key(key_event) => handle_key_event(&event_tx, key_event),
             CEvent::Mouse(mouse_event) => {
               event_tx.send(Event::MouseInput(mouse_event)).unwrap();

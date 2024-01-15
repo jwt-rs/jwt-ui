@@ -8,7 +8,7 @@ use ratatui::{
   Frame,
 };
 
-use crate::app::{ActiveBlock, InputMode, Route, TextInput};
+use crate::app::{InputMode, TextInput};
 
 // Utils
 
@@ -240,12 +240,11 @@ pub fn get_input_style(input_mode: &InputMode, light: bool) -> Style {
 
 pub fn get_selectable_block(
   title: &str,
-  route: &Route,
-  block: ActiveBlock,
+  is_active: bool,
   input_mode: Option<&InputMode>,
   light_theme: bool,
 ) -> Block<'static> {
-  let is_active = route.active_block == block;
+  //   let is_active = *active_block == block;
   let title_hint = if let Some(im) = input_mode {
     get_hint(im, is_active)
   } else if is_active {

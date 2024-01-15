@@ -112,10 +112,10 @@ fn draw_app_header(f: &mut Frame<'_>, app: &App, area: Rect) {
 fn draw_header_text(f: &mut Frame<'_>, app: &App, area: Rect) {
   let text: Vec<Line<'_>> = match app.get_current_route().id {
     RouteId::Decoder => vec![Line::from(
-      "<?> help | <tab> switch tabs | <←→> select block | <u> toggle UTC dates | <↑↓> scroll ",
+      "<?> help | <tab> switch tabs | <←→>, <click> select block | <u> toggle UTC dates | <↑↓> scroll ",
     )],
     RouteId::Encoder => vec![Line::from(
-      "<?> help | <tab> switch tabs | <←→> select block | <↑↓> scroll ",
+      "<?> help | <tab> switch tabs | <←→>, <click> select block | <↑↓> scroll ",
     )],
     RouteId::Help => vec![],
   };

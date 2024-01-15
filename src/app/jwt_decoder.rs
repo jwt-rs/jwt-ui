@@ -11,7 +11,7 @@ use serde_derive::{Deserialize, Serialize};
 use serde_json::{to_string_pretty, Value};
 
 use super::{
-  models::{ScrollableTxt, TabRoute, TabsState},
+  models::{BlockState, ScrollableTxt},
   utils::{
     decoding_key_from_jwks_secret, get_secret_from_file_or_input, JWTError, JWTResult, SecretType,
   },
@@ -25,7 +25,7 @@ pub struct Decoder {
   pub payload: ScrollableTxt,
   pub secret: TextInput,
   pub signature_verified: bool,
-  pub blocks: TabsState,
+  pub blocks: BlockState,
   pub utc_dates: bool,
   pub ignore_exp: bool,
   /// do not manipulate directly, use `set_decoded` instead
@@ -38,34 +38,22 @@ impl Decoder {
       encoded: TextInput::new(token.unwrap_or_default()),
       secret: TextInput::new(secret),
       ignore_exp: true,
-      blocks: TabsState::new(vec![
-        TabRoute {
-          title: "".into(),
-          route: Route {
-            id: RouteId::Decoder,
-            active_block: ActiveBlock::DecoderToken,
-          },
+      blocks: BlockState::new(vec![
+        Route {
+          id: RouteId::Decoder,
+          active_block: ActiveBlock::DecoderToken,
         },
-        TabRoute {
-          title: "".into(),
-          route: Route {
-            id: RouteId::Decoder,
-            active_block: ActiveBlock::DecoderSecret,
-          },
+        Route {
+          id: RouteId::Decoder,
+          active_block: ActiveBlock::DecoderSecret,
         },
-        TabRoute {
-          title: "".into(),
-          route: Route {
-            id: RouteId::Decoder,
-            active_block: ActiveBlock::DecoderHeader,
-          },
+        Route {
+          id: RouteId::Decoder,
+          active_block: ActiveBlock::DecoderHeader,
         },
-        TabRoute {
-          title: "".into(),
-          route: Route {
-            id: RouteId::Decoder,
-            active_block: ActiveBlock::DecoderPayload,
-          },
+        Route {
+          id: RouteId::Decoder,
+          active_block: ActiveBlock::DecoderPayload,
         },
       ]),
       ..Decoder::default()

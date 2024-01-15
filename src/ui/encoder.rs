@@ -9,18 +9,18 @@ use super::utils::{
   get_input_style, get_selectable_block, horizontal_chunks, render_input_widget, style_default,
   style_primary, vertical_chunks, vertical_chunks_with_margin,
 };
-use crate::app::{ActiveBlock, App, TextAreaInput};
+use crate::app::{ActiveBlock, App, Route, RouteId, TextAreaInput};
 
 pub fn draw_encoder(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let chunks = horizontal_chunks(
     vec![Constraint::Percentage(50), Constraint::Percentage(50)],
     area,
   );
-  draw_decoded_block(f, app, chunks[0]);
-  draw_encoded_block(f, app, chunks[1]);
+  draw_left_side(f, app, chunks[0]);
+  draw_right_side(f, app, chunks[1]);
 }
 
-fn draw_decoded_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
+fn draw_left_side(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let chunks = vertical_chunks(
     vec![Constraint::Percentage(40), Constraint::Percentage(60)],
     area,
@@ -30,7 +30,7 @@ fn draw_decoded_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   draw_payload_block(f, app, chunks[1]);
 }
 
-fn draw_encoded_block(f: &mut Frame<'_>, app: &App, area: Rect) {
+fn draw_right_side(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let chunks = vertical_chunks(
     vec![Constraint::Percentage(30), Constraint::Percentage(70)],
     area,
@@ -41,10 +41,11 @@ fn draw_encoded_block(f: &mut Frame<'_>, app: &App, area: Rect) {
 }
 
 fn draw_header_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
+  app.update_block_map(get_route(ActiveBlock::EncoderHeader), area);
+
   let block = get_selectable_block(
     "Header: Algorithm & Token Type",
-    app.data.encoder.blocks.get_active_route(),
-    ActiveBlock::EncoderHeader,
+    *app.data.encoder.blocks.get_active_block() == ActiveBlock::EncoderHeader,
     Some(&app.data.encoder.header.input_mode),
     app.light_theme,
   );
@@ -55,10 +56,11 @@ fn draw_header_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
 }
 
 fn draw_payload_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
+  app.update_block_map(get_route(ActiveBlock::EncoderPayload), area);
+
   let block = get_selectable_block(
     "Payload: Claims",
-    app.data.encoder.blocks.get_active_route(),
-    ActiveBlock::EncoderPayload,
+    *app.data.encoder.blocks.get_active_block() == ActiveBlock::EncoderPayload,
     Some(&app.data.encoder.payload.input_mode),
     app.light_theme,
   );
@@ -67,11 +69,12 @@ fn draw_payload_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   render_text_area_widget(f, area, &mut app.data.encoder.payload, app.light_theme);
 }
 
-fn draw_secret_block(f: &mut Frame<'_>, app: &App, area: Rect) {
+fn draw_secret_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
+  app.update_block_map(get_route(ActiveBlock::EncoderSecret), area);
+
   let block = get_selectable_block(
     "Verify Signature",
-    app.data.encoder.blocks.get_active_route(),
-    ActiveBlock::EncoderSecret,
+    *app.data.encoder.blocks.get_active_block() == ActiveBlock::EncoderSecret,
     Some(&app.data.encoder.secret.input_mode),
     app.light_theme,
   );
@@ -92,11 +95,12 @@ fn draw_secret_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   render_input_widget(f, chunks[1], &app.data.encoder.secret, app.light_theme);
 }
 
-fn draw_token_block(f: &mut Frame<'_>, app: &App, area: Rect) {
+fn draw_token_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
+  app.update_block_map(get_route(ActiveBlock::EncoderToken), area);
+
   let block = get_selectable_block(
     "Encoded Token",
-    app.data.encoder.blocks.get_active_route(),
-    ActiveBlock::EncoderToken,
+    *app.data.encoder.blocks.get_active_block() == ActiveBlock::EncoderToken,
     None,
     app.light_theme,
   );
@@ -132,6 +136,13 @@ fn render_text_area_widget(
   );
 
   f.render_widget(textarea.widget(), chunks[0]);
+}
+
+fn get_route(active_block: ActiveBlock) -> Route {
+  Route {
+    id: RouteId::Encoder,
+    active_block,
+  }
 }
 
 #[cfg(test)]

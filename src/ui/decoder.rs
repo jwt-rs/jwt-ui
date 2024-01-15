@@ -9,18 +9,18 @@ use super::utils::{
   get_selectable_block, horizontal_chunks, render_input_widget, style_default, style_primary,
   vertical_chunks, vertical_chunks_with_margin,
 };
-use crate::app::{ActiveBlock, App};
+use crate::app::{ActiveBlock, App, Route, RouteId};
 
-pub fn draw_decoder(f: &mut Frame<'_>, app: &App, area: Rect) {
+pub fn draw_decoder(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let chunks = horizontal_chunks(
     vec![Constraint::Percentage(50), Constraint::Percentage(50)],
     area,
   );
-  draw_encoded_block(f, app, chunks[0]);
-  draw_decoded_block(f, app, chunks[1]);
+  draw_left_side(f, app, chunks[0]);
+  draw_right_side(f, app, chunks[1]);
 }
 
-fn draw_encoded_block(f: &mut Frame<'_>, app: &App, area: Rect) {
+fn draw_left_side(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let chunks = vertical_chunks(
     vec![Constraint::Percentage(70), Constraint::Percentage(30)],
     area,
@@ -30,7 +30,7 @@ fn draw_encoded_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   draw_secret_block(f, app, chunks[1]);
 }
 
-fn draw_decoded_block(f: &mut Frame<'_>, app: &App, area: Rect) {
+fn draw_right_side(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let chunks = vertical_chunks(
     vec![Constraint::Percentage(40), Constraint::Percentage(60)],
     area,
@@ -40,11 +40,11 @@ fn draw_decoded_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   draw_payload_block(f, app, chunks[1]);
 }
 
-fn draw_token_block(f: &mut Frame<'_>, app: &App, area: Rect) {
+fn draw_token_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
+  app.update_block_map(get_route(ActiveBlock::DecoderToken), area);
   let block = get_selectable_block(
     "Encoded Token",
-    app.data.decoder.blocks.get_active_route(),
-    ActiveBlock::DecoderToken,
+    *app.data.decoder.blocks.get_active_block() == ActiveBlock::DecoderToken,
     Some(&app.data.decoder.encoded.input_mode),
     app.light_theme,
   );
@@ -55,11 +55,12 @@ fn draw_token_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   render_input_widget(f, chunks[0], &app.data.decoder.encoded, app.light_theme);
 }
 
-fn draw_secret_block(f: &mut Frame<'_>, app: &App, area: Rect) {
+fn draw_secret_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
+  app.update_block_map(get_route(ActiveBlock::DecoderSecret), area);
+
   let block = get_selectable_block(
     "Verify Signature",
-    app.data.decoder.blocks.get_active_route(),
-    ActiveBlock::DecoderSecret,
+    *app.data.decoder.blocks.get_active_block() == ActiveBlock::DecoderSecret,
     Some(&app.data.decoder.secret.input_mode),
     app.light_theme,
   );
@@ -80,11 +81,12 @@ fn draw_secret_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   render_input_widget(f, chunks[1], &app.data.decoder.secret, app.light_theme);
 }
 
-fn draw_header_block(f: &mut Frame<'_>, app: &App, area: Rect) {
+fn draw_header_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
+  app.update_block_map(get_route(ActiveBlock::DecoderHeader), area);
+
   let block = get_selectable_block(
     "Header: Algorithm & Token Type",
-    app.data.decoder.blocks.get_active_route(),
-    ActiveBlock::DecoderHeader,
+    *app.data.decoder.blocks.get_active_block() == ActiveBlock::DecoderHeader,
     None,
     app.light_theme,
   );
@@ -104,11 +106,12 @@ fn draw_header_block(f: &mut Frame<'_>, app: &App, area: Rect) {
   f.render_widget(paragraph, chunks[0]);
 }
 
-fn draw_payload_block(f: &mut Frame<'_>, app: &App, area: Rect) {
+fn draw_payload_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
+  app.update_block_map(get_route(ActiveBlock::DecoderPayload), area);
+
   let block = get_selectable_block(
     "Payload: Claims",
-    app.data.decoder.blocks.get_active_route(),
-    ActiveBlock::DecoderPayload,
+    *app.data.decoder.blocks.get_active_block() == ActiveBlock::DecoderPayload,
     None,
     app.light_theme,
   );
@@ -125,6 +128,13 @@ fn draw_payload_block(f: &mut Frame<'_>, app: &App, area: Rect) {
     .wrap(Wrap { trim: false })
     .scroll((app.data.decoder.payload.offset, 0));
   f.render_widget(paragraph, chunks[0]);
+}
+
+fn get_route(active_block: ActiveBlock) -> Route {
+  Route {
+    id: RouteId::Decoder,
+    active_block,
+  }
 }
 
 #[cfg(test)]
@@ -154,7 +164,7 @@ mod tests {
 
     terminal
       .draw(|f| {
-        draw_decoder(f, &app, f.size());
+        draw_decoder(f, &mut app, f.size());
       })
       .unwrap();
 

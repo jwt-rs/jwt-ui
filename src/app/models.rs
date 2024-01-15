@@ -103,7 +103,45 @@ impl TabsState {
   pub fn get_active_route(&self) -> &Route {
     &self.items[self.index].route
   }
+  pub fn next(&mut self) {
+    self.index = (self.index + 1) % self.items.len();
+  }
+  #[allow(dead_code)]
+  pub fn previous(&mut self) {
+    if self.index > 0 {
+      self.index -= 1;
+    } else {
+      self.index = self.items.len() - 1;
+    }
+  }
+}
 
+#[derive(Default)]
+pub struct BlockState {
+  pub items: Vec<Route>,
+  pub index: usize,
+}
+
+impl BlockState {
+  pub fn new(items: Vec<Route>) -> BlockState {
+    BlockState { items, index: 0 }
+  }
+  pub fn set_item(&mut self, block: Route) -> &Route {
+    // find active block index
+    let index = self
+      .items
+      .iter()
+      .position(|it| *it == block)
+      .unwrap_or_default();
+    self.index = index;
+    &self.items[self.index]
+  }
+  pub fn get_active_item(&self) -> &Route {
+    &self.items[self.index]
+  }
+  pub fn get_active_block(&self) -> &ActiveBlock {
+    &self.items[self.index].active_block
+  }
   pub fn next(&mut self) {
     self.index = (self.index + 1) % self.items.len();
   }
