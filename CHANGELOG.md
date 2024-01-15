@@ -2,7 +2,7 @@
 
 ## Unreleased - 2023-XX-YY
 
-## [1.0.3] - 2024-01-15
+## [1.0.4] - 2024-01-15
 
 - Improved error handling
 - UI improvements
