@@ -52,61 +52,59 @@ impl Encoder<'_> {
   }
 }
 
+#[derive(Debug)]
+struct EncodeArgs {
+  pub header: String,
+  /// claims
+  pub payload: String,
+  /// The secret to sign the JWT with.
+  pub secret: String,
+}
+
 pub fn encode_jwt_token(app: &mut App) {
-  let header = app.data.encoder.header.input.lines().join("\n");
-  if header.is_empty() {
-    app.handle_error(String::from("Header should not be empty").into());
-    return;
+  let out = encode_token(&EncodeArgs {
+    header: app.data.encoder.header.input.lines().join("\n"),
+    payload: app.data.encoder.payload.input.lines().join("\n"),
+    secret: app.data.encoder.secret.input.value().to_string(),
+  });
+
+  match out {
+    Ok(token) => {
+      if token != app.data.encoder.encoded.get_txt() {
+        app.data.encoder.encoded = ScrollableTxt::new(token);
+        app.data.encoder.signature_verified = true;
+      }
+      app.data.error = String::new();
+    }
+    Err(e) => {
+      app.handle_error(e);
+    }
   }
-  let payload = app.data.encoder.payload.input.lines().join("\n");
-  if payload.is_empty() {
-    app.handle_error(String::from("Payload should not be empty").into());
-    return;
+}
+
+fn encode_token(args: &EncodeArgs) -> JWTResult<String> {
+  if args.header.is_empty() {
+    return Err(String::from("Header should not be empty").into());
   }
-  let header: Result<Header, serde_json::Error> = serde_json::from_str(&header);
+  if args.payload.is_empty() {
+    return Err(String::from("Payload should not be empty").into());
+  }
+  let header: Result<Header, serde_json::Error> = serde_json::from_str(&args.header);
   match header {
     Ok(header) => {
       let alg = header.alg;
 
-      let payload: Result<Payload, serde_json::Error> = serde_json::from_str(&payload);
+      let payload: Result<Payload, serde_json::Error> = serde_json::from_str(&args.payload);
       match payload {
         Ok(payload) => {
-          let secret = app.data.encoder.secret.input.value();
-          let encoding_key = encoding_key_from_secret(&alg, secret);
-          match encoding_key {
-            Ok(encoding_key) => {
-              let token = jsonwebtoken::encode(&header, &payload, &encoding_key);
-              match token {
-                Ok(token) => {
-                  if token != app.data.encoder.encoded.get_txt() {
-                    app.data.encoder.encoded = ScrollableTxt::new(token);
-                    app.data.encoder.signature_verified = true;
-                  }
-                }
-                Err(e) => {
-                  app.handle_error(e.into());
-                  return;
-                }
-              }
-            }
-            Err(e) => {
-              app.handle_error(e);
-              return;
-            }
-          }
+          let encoding_key = encoding_key_from_secret(&alg, &args.secret)?;
+          Ok(jsonwebtoken::encode(&header, &payload, &encoding_key)?)
         }
-        Err(e) => {
-          app.handle_error(format!("Error parsing payload: {:}", e).into());
-          return;
-        }
+        Err(e) => Err(format!("Error parsing payload: {:}", e).into()),
       }
     }
-    Err(e) => {
-      app.handle_error(format!("Error parsing header: {:}", e).into());
-      return;
-    }
+    Err(e) => Err(format!("Error parsing header: {:}", e).into()),
   }
-  app.data.error = String::new();
 }
 
 pub fn encoding_key_from_secret(alg: &Algorithm, secret_string: &str) -> JWTResult<EncodingKey> {
@@ -154,14 +152,13 @@ pub fn encoding_key_from_secret(alg: &Algorithm, secret_string: &str) -> JWTResu
 
 #[cfg(test)]
 mod tests {
-  use jsonwebtoken::{DecodingKey, Validation};
   use tui_textarea::TextArea;
 
   use super::*;
-  use crate::app::{utils::slurp_file, utils::strip_leading_symbol};
+  use crate::app::jwt_decoder::{decode_token, DecodeArgs};
 
   #[test]
-  fn test_encode_jwt_token_with_valid_payload_and_defaults() {
+  fn test_encode_hmac_jwt_token_with_valid_payload_and_defaults() {
     let mut app = App::new(250, None, "secrets".into());
 
     app.data.encoder.payload.input = vec![
@@ -181,10 +178,21 @@ mod tests {
       .encoded
       .get_txt(), "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1MTYyMzkwMjIsIm5hbWUiOiJKb2huIERvZSIsInN1YiI6IjEyMzQ1Njc4OTAifQ.TggX4VlPVD-2G5eUT5AhzepyMCx_nuzfiQ_YkdXsMKI");
     assert!(app.data.encoder.signature_verified);
+
+    let args = DecodeArgs {
+      jwt: app.data.encoder.encoded.get_txt(),
+      secret: String::from("secrets"),
+      time_format_utc: false,
+      ignore_exp: true,
+    };
+
+    let decoded = decode_token(&args).1;
+
+    assert!(decoded.is_ok())
   }
 
   #[test]
-  fn test_encode_jwt_token_with_valid_payload_and_header_rs256() {
+  fn test_encode_rsa_jwt_token_with_valid_payload_and_header() {
     let mut app = App::new(250, None, "".into());
 
     let header = vec!["{", r#"  "alg": "RS256","#, r#"  "typ": "JWT""#, "}"];
@@ -211,23 +219,143 @@ mod tests {
     assert!(app.data.encoder.signature_verified);
 
     // decode the key and verify
-    let mut secret_validator = Validation::new(Algorithm::RS256);
-    secret_validator.leeway = 1000;
-    secret_validator
-      .required_spec_claims
-      .retain(|claim| claim != "exp");
-    secret_validator.validate_exp = false;
+    let args = DecodeArgs {
+      jwt: app.data.encoder.encoded.get_txt(),
+      secret: String::from("@./test_data/test_rsa_public_key.pem"),
+      time_format_utc: false,
+      ignore_exp: true,
+    };
 
-    let secret_string = "@./test_data/test_rsa_public_key.pem";
+    let decoded = decode_token(&args).1.unwrap();
 
-    let secret = slurp_file(strip_leading_symbol(secret_string)).unwrap();
+    assert_eq!(
+      decoded.header,
+      serde_json::from_str(header.join("\n").as_str()).unwrap()
+    );
+    assert_eq!(
+      decoded.claims,
+      serde_json::from_str(claims.join("\n").as_str()).unwrap()
+    );
+  }
 
-    let decoded = jsonwebtoken::decode::<Payload>(
-      &app.data.encoder.encoded.get_txt(),
-      &DecodingKey::from_rsa_pem(&secret).unwrap(),
-      &secret_validator,
-    )
-    .unwrap();
+  #[test]
+  fn test_encode_rsa_pss_jwt_token_with_valid_payload_and_header() {
+    let mut app = App::new(250, None, "".into());
+
+    let header = vec!["{", r#"  "alg": "PS256","#, r#"  "typ": "JWT""#, "}"];
+    app.data.encoder.header.input = header.clone().into();
+
+    let claims = vec![
+      "{",
+      r#"  "sub": "1234567890","#,
+      r#"  "name": "John Doe","#,
+      r#"  "iat": 1516239022"#,
+      "}",
+    ];
+    app.data.encoder.payload.input = claims.clone().into();
+
+    app.data.encoder.secret.input = "@./test_data/test_rsa_private_key.der".into();
+
+    encode_jwt_token(&mut app);
+    assert_eq!(app.data.error, "");
+    assert!(!app.data.encoder.encoded.get_txt().is_empty());
+    assert!(app.data.encoder.signature_verified);
+
+    // decode the key and verify
+    let args = DecodeArgs {
+      jwt: app.data.encoder.encoded.get_txt(),
+      secret: String::from("@./test_data/test_rsa_public_key.der"),
+      time_format_utc: false,
+      ignore_exp: true,
+    };
+
+    let decoded = decode_token(&args).1.unwrap();
+
+    assert_eq!(
+      decoded.header,
+      serde_json::from_str(header.join("\n").as_str()).unwrap()
+    );
+    assert_eq!(
+      decoded.claims,
+      serde_json::from_str(claims.join("\n").as_str()).unwrap()
+    );
+  }
+
+  #[test]
+  fn test_encode_ecdsa_jwt_token_with_valid_payload_and_header() {
+    let mut app = App::new(250, None, "".into());
+
+    let header = vec!["{", r#"  "alg": "ES256","#, r#"  "typ": "JWT""#, "}"];
+    app.data.encoder.header.input = header.clone().into();
+
+    let claims = vec![
+      "{",
+      r#"  "sub": "1234567890","#,
+      r#"  "name": "John Doe","#,
+      r#"  "iat": 1516239022"#,
+      "}",
+    ];
+    app.data.encoder.payload.input = claims.clone().into();
+
+    app.data.encoder.secret.input = "@./test_data/test_ecdsa_private_key.pk8".into();
+
+    encode_jwt_token(&mut app);
+    assert_eq!(app.data.error, "");
+    assert!(!app.data.encoder.encoded.get_txt().is_empty());
+    assert!(app.data.encoder.signature_verified);
+
+    // decode the key and verify
+    let args = DecodeArgs {
+      jwt: app.data.encoder.encoded.get_txt(),
+      secret: String::from("@./test_data/test_ecdsa_public_key.pk8"),
+      time_format_utc: false,
+      ignore_exp: true,
+    };
+
+    let decoded = decode_token(&args).1.unwrap();
+
+    assert_eq!(
+      decoded.header,
+      serde_json::from_str(header.join("\n").as_str()).unwrap()
+    );
+    assert_eq!(
+      decoded.claims,
+      serde_json::from_str(claims.join("\n").as_str()).unwrap()
+    );
+  }
+
+  #[test]
+  fn test_encode_eddsa_jwt_token_with_valid_payload_and_header() {
+    let mut app = App::new(250, None, "".into());
+
+    let header = vec!["{", r#"  "alg": "EdDSA","#, r#"  "typ": "JWT""#, "}"];
+    app.data.encoder.header.input = header.clone().into();
+
+    let claims = vec![
+      "{",
+      r#"  "sub": "1234567890","#,
+      r#"  "name": "John Doe","#,
+      r#"  "iat": 1516239022"#,
+      "}",
+    ];
+    app.data.encoder.payload.input = claims.clone().into();
+
+    app.data.encoder.secret.input = "@./test_data/test_eddsa_private_key.pem".into();
+
+    encode_jwt_token(&mut app);
+    assert_eq!(app.data.error, "");
+    assert!(!app.data.encoder.encoded.get_txt().is_empty());
+    assert!(app.data.encoder.signature_verified);
+
+    // decode the key and verify
+    let args = DecodeArgs {
+      jwt: app.data.encoder.encoded.get_txt(),
+      secret: String::from("@./test_data/test_eddsa_public_key.pem"),
+      time_format_utc: false,
+      ignore_exp: true,
+    };
+
+    let decoded = decode_token(&args).1.unwrap();
 
     assert_eq!(
       decoded.header,

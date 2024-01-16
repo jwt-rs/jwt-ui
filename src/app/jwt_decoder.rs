@@ -123,12 +123,12 @@ impl TokenOutput {
 }
 
 #[derive(Debug, Clone)]
-struct DecodeArgs {
+pub(super) struct DecodeArgs {
   /// The JWT to decode.
   pub jwt: String,
   /// Display unix timestamps as ISO 8601 UTC dates
   pub time_format_utc: bool,
-  /// The secret to validate the JWT with. Prefix with @ to read from a file or b64: to use base-64 encoded bytes
+  /// The secret to validate the JWT with.
   pub secret: String,
   /// Ignore token expiration date (`exp` claim) during validation
   pub ignore_exp: bool,
@@ -185,7 +185,7 @@ pub fn print_decoded_token(token: &TokenData<Payload>, json: bool) {
 }
 
 /// returns the base64 decoded values and signature verified result
-fn decode_token(
+pub(super) fn decode_token(
   arguments: &DecodeArgs,
 ) -> (JWTResult<TokenData<Payload>>, JWTResult<TokenData<Payload>>) {
   let header = match decode_header(&arguments.jwt) {
@@ -309,7 +309,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn test_decode_hs256_token_with_valid_jwt_and_secret() {
+  fn test_decode_hmac_token_with_valid_jwt_and_secret() {
     let args = DecodeArgs {
             jwt: String::from("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"),
             secret: String::from("your-256-bit-secret"),
@@ -334,7 +334,7 @@ mod tests {
   }
 
   #[test]
-  fn test_decode_hs256_token_with_valid_jwt_and_b64secret() {
+  fn test_decode_hmac_token_with_valid_jwt_and_b64secret() {
     let args = DecodeArgs {
             jwt: String::from("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.DCwemWTIxJURgfU0rFIIo20__ZAhQbl3ZpQ44nf6Mqs"),
             secret: String::from("b64:eW91ci0yNTYtYml0LXNlY3JldAo="),
@@ -359,7 +359,7 @@ mod tests {
   }
 
   #[test]
-  fn test_decode_rs256_token_with_valid_jwt() {
+  fn test_decode_rsa_token_with_valid_jwt_and_invalid_signature() {
     let args = DecodeArgs {
             jwt: String::from("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkRGbzcxemxOdV9vLTkxOFJIN0lIVyJ9.eyJodHRwczovL3d3dy5qaGlwc3Rlci50ZWNoL3JvbGVzIjpbIkFkbWluaXN0cmF0b3IiLCJST0xFX0FETUlOIiwiUk9MRV9VU0VSIl0sImlzcyI6Imh0dHBzOi8vZGV2LTA2YnpzMWN1LnVzLmF1dGgwLmNvbS8iLCJzdWIiOiJhdXRoMHw2MWJjYmM3NmY2NGQ0YTAwNzJhZjhhMWQiLCJhdWQiOlsiaHR0cHM6Ly9kZXYtMDZienMxY3UudXMuYXV0aDAuY29tL2FwaS92Mi8iLCJodHRwczovL2Rldi0wNmJ6czFjdS51cy5hdXRoMC5jb20vdXNlcmluZm8iXSwiaWF0IjoxNzA1MDAyMDQxLCJleHAiOjE3MDUwODg0NDEsImF6cCI6IjFmbTdJMUdHRXRNZlRabW5vdFV1azVVT3gyWm10NnR0Iiwic2NvcGUiOiJvcGVuaWQifQ.eWdbVEolnmqqyx_Z5rR-09H3kg06EaokYoAAdrqLmB6FHwZbbyZrPaHImmEnY8BSRM42FpE9NZehqVAeQ5VQhOVdMMklCQSA5h13oQbKn6ciuc9Etyq2jg4sk2lOEkSmw4e_hWUGjkXnzP_J84o9-2qpN7VKNTGEvtk3mdQYXxwoeD8RvQjYJq6LsKIKA0biEyGWZxIpK1LCAFH1dmo5ZMpTeNGIwnUBdOxkL4jbKe26e9t7TDO0EtFjXmq-C218bbr1AgFN2eyj6n-3kNy9XfRcnfIlyXWJ0ZvcDVa9UoaTGP9Wdo0Ze3q2IrcgYrP7zTeZia5O2tejkaNknKNnwA"),
             secret: "".into(),
@@ -385,7 +385,30 @@ mod tests {
   }
 
   #[test]
-  fn test_decode_es384_token_with_valid_jwt_and_secret_pem() {
+  fn test_decode_rsa_pss_token_with_valid_jwt_and_secret() {
+    let args = DecodeArgs {
+            jwt: String::from("eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE1MTYyMzkwMjIsIm5hbWUiOiJKb2huIERvZSIsInN1YiI6IjEyMzQ1Njc4OTAifQ.a6yeSQkIfGD1Va9TgdImZUZ1AKO0OgP15ZFV4JPpZy8TpeByQpqUA3r2kJHNeUlETyEeYMKsDbZI5dYOEa_ZfF9xY6eslV1xmawOPkJYzf8IK3Lb42GEykn9qBWSvHzh5xFs2U1dYjJ9GW7bqhyPVaRVRKh1EBw8AbXmEYT42xSDnzkVUHhPpGM8_2anJNXvnexCQKlVRVVzZC04eHNsRIl5_n50irg7bQCO4z24kwViMTuCQTalV9LXCfdxp7_3Pp4Av_iJtkKHDXWs9GrrD6ttq1J6jOXDSbxn42XrPlxirr0pNtdvbk58W2LqYz4_G9q0HTRz_WO3FmaSxIxyqQ"),
+            secret: "@./test_data/test_rsa_public_key.pem".into(),
+            time_format_utc: false,
+            ignore_exp: true,
+        };
+
+    let (decode_only, verified_token_data) = decode_token(&args);
+
+    assert!(decode_only.is_ok());
+    assert!(verified_token_data.is_ok());
+
+    let decode_only_token = decode_only.unwrap();
+
+    assert_eq!(decode_only_token.header.alg, Algorithm::RS256);
+    assert_eq!(
+      format!("{:?}", decode_only_token.claims.0.get("name").unwrap()),
+      "String(\"John Doe\")"
+    );
+  }
+
+  #[test]
+  fn test_decode_ecdsa_token_with_valid_jwt_and_secret_pem() {
     let secret_file_name = "./test_data/test_ecdsa_public_key.pem";
 
     let args = DecodeArgs {
@@ -412,7 +435,7 @@ mod tests {
   }
 
   #[test]
-  fn test_decode_rs256_token_with_valid_jwt_and_secret_der() {
+  fn test_decode_rsa_token_with_valid_jwt_and_secret_der() {
     let secret_file_name = "./test_data/test_rsa_public_key.der";
 
     let args = DecodeArgs {
