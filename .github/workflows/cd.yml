@@ -37,7 +37,7 @@ jobs:
           name: artifacts
           path: artifacts
 
-  build-release:
+  build-release-artifacts:
     name: build-release
     needs: [create-github-release]
     runs-on: ${{ matrix.job.os }}
@@ -48,15 +48,16 @@ jobs:
       matrix:
         rust: [stable]
         job:
-          - { os: "macOS-latest",   target: "x86_64-apple-darwin",          artifact_prefix: "macos"                                                  }
-          - { os: "windows-latest", target: "x86_64-pc-windows-msvc",       artifact_prefix: "windows"                                                }
-          - { os: "ubuntu-latest",  target: "x86_64-unknown-linux-gnu",     artifact_prefix: "linux",                                                 }
+          - { name: "macOS-arm64",   os: "macOS-latest",   target: "aarch64-apple-darwin",         artifact_prefix: "macos-arm64",  use-cross: true                          }
+          - { name: "macOS-amd64",   os: "macOS-latest",   target: "x86_64-apple-darwin",          artifact_prefix: "macos"                                                  }
+          - { name: "windows-amd64", os: "windows-latest", target: "x86_64-pc-windows-msvc",       artifact_prefix: "windows"                                                }
+          - { name: "linux-gnu",     os: "ubuntu-latest",  target: "x86_64-unknown-linux-gnu",     artifact_prefix: "linux",                                                 }
           #   seems impossible to build static musl binaries due to XCB dependency. See https://github.com/rust-lang/rust/issues/116348                                             
-          #   - { os: "ubuntu-latest",  target: "x86_64-unknown-linux-musl",    artifact_prefix: "linux-musl",                                        }
-          - { os: "ubuntu-latest",  target: "aarch64-unknown-linux-gnu",    artifact_prefix: "aarch64-gnu",  use-cross: true, test-bin: "--bin jwtui" }
-          - { os: "ubuntu-latest",  target: "aarch64-unknown-linux-musl",   artifact_prefix: "aarch64-musl", use-cross: true, test-bin: "--bin jwtui" }
-          - { os: "ubuntu-latest",  target: "arm-unknown-linux-gnueabihf",  artifact_prefix: "arm-gnu",      use-cross: true, test-bin: "--bin jwtui" }
-          - { os: "ubuntu-latest",  target: "arm-unknown-linux-musleabihf", artifact_prefix: "arm-musl",     use-cross: true, test-bin: "--bin jwtui" }
+          # { name: "linux-musl",    os: "ubuntu-latest",  target: "x86_64-unknown-linux-musl",    artifact_prefix: "linux-musl",                                            }
+          - { name: "aarch64-gnu",   os: "ubuntu-latest",  target: "aarch64-unknown-linux-gnu",    artifact_prefix: "aarch64-gnu",  use-cross: true, test-bin: "--bin jwtui" }
+          - { name: "aarch64-musl",  os: "ubuntu-latest",  target: "aarch64-unknown-linux-musl",   artifact_prefix: "aarch64-musl", use-cross: true, test-bin: "--bin jwtui" }
+          - { name: "arm-gnu",       os: "ubuntu-latest",  target: "arm-unknown-linux-gnueabihf",  artifact_prefix: "arm-gnu",      use-cross: true, test-bin: "--bin jwtui" }
+          - { name: "arm-musl",      os: "ubuntu-latest",  target: "arm-unknown-linux-musleabihf", artifact_prefix: "arm-musl",     use-cross: true, test-bin: "--bin jwtui" }
 
     steps:
       - name: Checkout repository
@@ -111,7 +112,13 @@ jobs:
           args: --release --verbose --target=${{ matrix.job.target }}
           toolchain: ${{ matrix.rust }}
 
+      - name: Verify file
+        shell: bash
+        run: |
+          file target/${{ matrix.job.target }}/release/jwtui
+
       - name: Test
+        if: matrix.job.target != 'aarch64-apple-darwin'
         uses: actions-rs/cargo@v1
         with:
           use-cross: ${{ matrix.job.use-cross }}
@@ -171,8 +178,8 @@ jobs:
           name: artifacts
           path: artifacts
 
-  publish-package-formula:
-    needs: [build-release]
+  publish-homebrew-formula:
+    needs: [build-release-artifacts]
     name: Update homebrew & scoop formulas
     runs-on: ubuntu-latest
     steps:
@@ -192,24 +199,24 @@ jobs:
         run: |
           macos_sha="$(cat ./artifacts/jwtui-macos.sha256 | awk '{print $1}')"
           echo "MACOS_SHA=$macos_sha" >> $GITHUB_ENV
+          macos_sha_arm="$(cat ./artifacts/jwtui-macos-arm64.sha256 | awk '{print $1}')"
+          echo "MACOS_SHA_ARM=$macos_sha_arm" >> $GITHUB_ENV
           linux_sha="$(cat ./artifacts/jwtui-linux.sha256 | awk '{print $1}')"
           echo "LINUX_SHA=$linux_sha" >> $GITHUB_ENV          
-          windows_sha="$(cat ./artifacts/jwtui-windows.sha256 | awk '{print $1}')"
-          echo "WINDOWS_SHA=$windows_sha" >> $GITHUB_ENV
           release_version="$(cat ./artifacts/release-version)"
           echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
 
       - name: Validate release environment variables
         run: |
           echo "Release SHA macos: ${{ env.MACOS_SHA }}"
+          echo "Release SHA macos-arm: ${{ env.MACOS_SHA_ARM }}"
           echo "Release SHA linux: ${{ env.LINUX_SHA }}"
-          echo "Release SHA windows: ${{ env.WINDOWS_SHA }}"
           echo "Release version: ${{ env.RELEASE_VERSION }}"
 
       - name: Execute Homebrew packaging script
         run: |
           # run packaging script
-          python "./deployment/homebrew/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/homebrew/jwt-ui.rb.template" "./jwt-ui.rb" ${{ env.MACOS_SHA }} ${{ env.LINUX_SHA }}
+          python "./deployment/homebrew/packager.py" ${{ env.RELEASE_VERSION }} "./deployment/homebrew/jwt-ui.rb.template" "./jwt-ui.rb" ${{ env.MACOS_SHA }} ${{ env.MACOS_SHA_ARM }} ${{ env.LINUX_SHA }}
           
           # push to Git
           git config --global user.email "d4udts@gmail.com"
@@ -221,6 +228,35 @@ jobs:
           git add .
           git diff-index --quiet HEAD || git commit -am "Update formula for jwt-ui release ${{ env.RELEASE_VERSION }}"
           git push origin main
+
+  publish-scoop-formula:
+    needs: [build-release-artifacts]
+    name: Update scoop formulas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Get release artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: artifacts
+          path: artifacts
+
+      - name: Set release assets and version
+        shell: bash
+        run: |
+          windows_sha="$(cat ./artifacts/jwtui-windows.sha256 | awk '{print $1}')"
+          echo "WINDOWS_SHA=$windows_sha" >> $GITHUB_ENV
+          release_version="$(cat ./artifacts/release-version)"
+          echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
+
+      - name: Validate release environment variables
+        run: |
+          echo "Release SHA windows: ${{ env.WINDOWS_SHA }}"
+          echo "Release version: ${{ env.RELEASE_VERSION }}"
 
       - name: Execute Scoop packaging script
         run: |
@@ -239,6 +275,7 @@ jobs:
           git push origin main
 
   publish-cargo:
+    needs: [build-release-artifacts]
     name: Publishing to Cargo
     runs-on: ubuntu-latest
     steps:
@@ -257,7 +294,7 @@ jobs:
           args: --token ${{ secrets.CARGO_API_KEY }} --allow-dirty
 
   publish-docker-image:
-    needs: [build-release]
+    needs: [build-release-artifacts]
     name: Publishing Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:

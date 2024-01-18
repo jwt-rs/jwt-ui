@@ -2,6 +2,10 @@
 
 ## Unreleased - 2023-XX-YY
 
+## [1.0.5] - 2024-01-18
+
+- macOS arm64 support
+
 ## [1.0.4] - 2024-01-15
 
 - Improved error handling

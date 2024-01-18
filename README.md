@@ -175,6 +175,8 @@ If you are looking for a non TUI CLI, check out [jwt-cli](https://github.com/mik
 ## Limitations/Known issues
 
 - Copy to clipboard is not supported on `aarch64` and `arm` machines.
+- [macOS] KDash looks better on iTerm2 since macOS's default Terminal app makes the colors render weird.
+- [Windows] KDash looks better on CMD since Powershell's default theme makes the colors look weird.
 
 ## Libraries used
 
