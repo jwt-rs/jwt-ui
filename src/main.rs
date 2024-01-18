@@ -7,7 +7,7 @@ mod ui;
 
 use std::{
   error::Error,
-  io::{self, stdout, Stdout},
+  io::{self, stdout, Stdout, Write},
   panic::{self, PanicInfo},
 };
 
@@ -15,7 +15,7 @@ use app::{jwt_decoder::print_decoded_token, App};
 use banner::BANNER;
 use clap::Parser;
 use crossterm::{
-  event::{DisableMouseCapture, EnableMouseCapture},
+  event::DisableMouseCapture,
   execute,
   terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -84,13 +84,28 @@ fn to_stdout(cli: Cli) {
   }
 }
 
+/// Enable mouse capture, but don't enable capture of all the mouse movements, doing so will improve performance, and is part of the fix for the weird mouse event output bug
+pub fn enable_mouse_capture() -> Result<()> {
+  Ok(
+    io::stdout().write_all(
+      concat!(
+        crossterm::csi!("?1000h"),
+        crossterm::csi!("?1015h"),
+        crossterm::csi!("?1006h"),
+      )
+      .as_bytes(),
+    )?,
+  )
+}
+
 fn start_ui(cli: Cli) -> Result<()> {
   // see https://docs.rs/crossterm/0.17.7/crossterm/terminal/#raw-mode
   enable_raw_mode()?;
   // Terminal initialization
   let mut stdout = stdout();
   // not capturing mouse to make text select/copy possible
-  execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+  execute!(stdout, EnterAlternateScreen)?;
+  enable_mouse_capture()?;
   // terminal backend for cross platform support
   let backend = CrosstermBackend::new(stdout);
   let mut terminal = Terminal::new(backend)?;
