@@ -2,6 +2,10 @@
 
 ## Unreleased - 2023-XX-YY
 
+## [1.0.6] - 2024-01-19
+
+- `no-verify` flag to disable signature validation
+
 ## [1.0.5] - 2024-01-18
 
 - macOS arm64 support
