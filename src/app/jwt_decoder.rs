@@ -135,7 +135,7 @@ pub(super) struct DecodeArgs {
 }
 
 /// decode the given JWT token and verify its signature if secret is provided
-pub fn decode_jwt_token(app: &mut App) {
+pub fn decode_jwt_token(app: &mut App, no_verify: bool) {
   let token = app.data.decoder.encoded.input.value();
   if !token.is_empty() {
     let secret = app.data.decoder.secret.input.value();
@@ -153,7 +153,9 @@ pub fn decode_jwt_token(app: &mut App) {
         app.data.decoder.set_decoded(Some(decoded));
       }
       (Ok(decoded), Err(e)) => {
-        app.handle_error(e);
+        if !no_verify {
+          app.handle_error(e);
+        }
         app.data.decoder.signature_verified = false;
         app.data.decoder.set_decoded(Some(decoded));
       }

@@ -18,7 +18,7 @@ build:
 
 ## Runs the app
 run:  
-	@cargo fmt && make lint && CARGO_INCREMENTAL=1 cargo run
+	@echo cargo fmt && make lint && CARGO_INCREMENTAL=1 cargo run -- $(filter-out $@, $(MAKECMDGOALS))
 
 ## Run clippy
 lint:  

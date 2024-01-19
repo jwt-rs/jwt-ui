@@ -227,7 +227,7 @@ impl App {
 
   pub fn on_tick(&mut self) {
     match self.get_current_route().id {
-      RouteId::Decoder => decode_jwt_token(self),
+      RouteId::Decoder => decode_jwt_token(self, false),
       RouteId::Encoder => encode_jwt_token(self),
       RouteId::Help => { /* nothing to do */ }
     }

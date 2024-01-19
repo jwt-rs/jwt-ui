@@ -31,22 +31,25 @@ use crate::app::jwt_decoder::decode_jwt_token;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None, before_help = BANNER)]
 pub struct Cli {
-  /// JWT token to decode [mandatory for stdout mode, optional for TUI mode]
+  /// JWT token to decode [mandatory for stdout mode, optional for TUI mode].
   #[clap(index = 1)]
   #[clap(value_parser)]
   pub token: Option<String>,
-  /// whether the CLI should run in TUI mode or just print to stdout
+  /// Secret for validating the JWT. Can be text, file path (beginning with @) or base64 encoded string (beginning with b64:).
+  #[arg(short = 'S', long, value_parser, default_value = "")]
+  pub secret: String,
+  /// Print to STDOUT instead of starting the CLI in TUI mode.
   #[arg(short, long, value_parser, default_value_t = false)]
   pub stdout: bool,
-  /// whether stdout should be formatted as JSON
+  /// Do not validate the signature of the JWT when printing to STDOUT.
+  #[arg(short, long, value_parser, default_value_t = false)]
+  pub no_verify: bool,
+  /// Format STDOUT as JSON.
   #[arg(short, long, value_parser, default_value_t = false)]
   pub json: bool,
   /// Set the tick rate (milliseconds): the lower the number the higher the FPS. Must be less than 1000.
   #[arg(short, long, value_parser, default_value_t = 250)]
   pub tick_rate: u64,
-  /// secret for validating the JWT. Can be text, file path (beginning with @) or base64 encoded string (beginning with b64:)
-  #[arg(short = 'S', long, value_parser, default_value = "")]
-  pub secret: String,
 }
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -76,7 +79,7 @@ fn main() -> Result<()> {
 fn to_stdout(cli: Cli) {
   let mut app = App::new(cli.tick_rate, cli.token.clone(), cli.secret.clone());
   // print decoded result to stdout
-  decode_jwt_token(&mut app);
+  decode_jwt_token(&mut app, cli.no_verify);
   if app.data.error.is_empty() && app.data.decoder.is_decoded() {
     print_decoded_token(app.data.decoder.get_decoded().as_ref().unwrap(), cli.json);
   } else {
