@@ -98,28 +98,28 @@ fn handle_edit_event(app: &mut App) {
 fn handle_copy_event(app: &mut App) {
   match app.get_current_route().active_block {
     ActiveBlock::DecoderToken => {
-      copy_to_clipboard(app.data.decoder.encoded.input.value().into());
+      copy_to_clipboard(app.data.decoder.encoded.input.value().into(), app);
     }
     ActiveBlock::DecoderHeader => {
-      copy_to_clipboard(app.data.decoder.header.get_txt());
+      copy_to_clipboard(app.data.decoder.header.get_txt(), app);
     }
     ActiveBlock::DecoderPayload => {
-      copy_to_clipboard(app.data.decoder.payload.get_txt());
+      copy_to_clipboard(app.data.decoder.payload.get_txt(), app);
     }
     ActiveBlock::DecoderSecret => {
-      copy_to_clipboard(app.data.decoder.secret.input.value().into());
+      copy_to_clipboard(app.data.decoder.secret.input.value().into(), app);
     }
     ActiveBlock::EncoderToken => {
-      copy_to_clipboard(app.data.encoder.encoded.get_txt());
+      copy_to_clipboard(app.data.encoder.encoded.get_txt(), app);
     }
     ActiveBlock::EncoderHeader => {
-      copy_to_clipboard(app.data.encoder.header.input.lines().join("\n"));
+      copy_to_clipboard(app.data.encoder.header.input.lines().join("\n"), app);
     }
     ActiveBlock::EncoderPayload => {
-      copy_to_clipboard(app.data.encoder.payload.input.lines().join("\n"));
+      copy_to_clipboard(app.data.encoder.payload.input.lines().join("\n"), app);
     }
     ActiveBlock::EncoderSecret => {
-      copy_to_clipboard(app.data.encoder.secret.input.value().into());
+      copy_to_clipboard(app.data.encoder.secret.input.value().into(), app);
     }
     _ => { /* Do nothing */ }
   }
@@ -278,20 +278,33 @@ fn handle_block_scroll(app: &mut App, up: bool, is_mouse: bool, page: bool) {
   target_arch = "x86_64",
   all(target_os = "macos", target_arch = "aarch64")
 ))]
-fn copy_to_clipboard(content: String) {
-  use clipboard::{ClipboardContext, ClipboardProvider};
+fn copy_to_clipboard(content: String, app: &mut App) {
+  use crate::app::utils::JWTError;
+  use copypasta::{ClipboardContext, ClipboardProvider};
+  use std::thread;
 
-  let mut ctx: ClipboardContext = ClipboardProvider::new().expect("Unable to obtain clipboard");
-  ctx
-    .set_contents(content)
-    .expect("Unable to set content to clipboard");
+  match ClipboardContext::new() {
+    Ok(mut ctx) => match ctx.set_contents(content) {
+      // without this sleep the clipboard is not set in some OSes
+      Ok(_) => thread::sleep(std::time::Duration::from_millis(100)),
+      Err(_) => app.handle_error(JWTError::Internal(
+        "Unable to set clipboard contents".to_string(),
+      )),
+    },
+    Err(err) => {
+      app.handle_error(JWTError::Internal(format!(
+        "Unable to obtain clipboard: {}",
+        err
+      )));
+    }
+  };
 }
 
 #[cfg(not(any(
   target_arch = "x86_64",
   all(target_os = "macos", target_arch = "aarch64")
 )))]
-fn copy_to_clipboard(_content: String) {
+fn copy_to_clipboard(_content: String, _app: &mut App) {
   // do nothing as its a PITA to compile for ARM with XCB and this feature is not that important
 }
 
