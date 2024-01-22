@@ -575,7 +575,7 @@ dependencies = [
 
 [[package]]
 name = "jwt-ui"
-version = "1.0.6"
+version = "1.0.7"
 dependencies = [
  "backtrace",
  "cargo-husky",
