@@ -2,7 +2,13 @@
 
 ## Unreleased - 2023-XX-YY
 
-## [1.0.7] - 2024-01-2
+## [1.1.0] - 2024-01-22
+
+- Linux musl builds as default
+- Aarch64 build for windows
+- ARM v7 builds for Linux
+- 
+## [1.0.7] - 2024-01-22
 
 - Update clipboard dependencies to fix security vulnerability
 

@@ -100,8 +100,7 @@ docker run --rm -it deepu105/jwt-ui
 You can also clone this repo and run `make docker` to build a docker image locally and run it using the above command
 
 ### Manual
-
-Binaries for macOS, Linux and Windows are available on the [releases](https://github.com/jwt-rs/jwt-ui/releases) page
+Binaries for macOS (x86_64, arm64), Linux GNU/MUSL(x86_64, armv6, armv7, aarch64) and Windows (x86_64, aarch64) are available on the [releases](https://github.com/jwt-rs/jwt-ui/releases) page
 
 1. Download the latest [binary](https://github.com/jwt-rs/jwt-ui/releases) for your OS.
 1. For Linux/macOS:

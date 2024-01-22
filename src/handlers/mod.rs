@@ -274,10 +274,6 @@ fn handle_block_scroll(app: &mut App, up: bool, is_mouse: bool, page: bool) {
   }
 }
 
-#[cfg(any(
-  target_arch = "x86_64",
-  all(target_os = "macos", target_arch = "aarch64")
-))]
 fn copy_to_clipboard(content: String, app: &mut App) {
   use crate::app::utils::JWTError;
   use copypasta::{ClipboardContext, ClipboardProvider};
@@ -298,14 +294,6 @@ fn copy_to_clipboard(content: String, app: &mut App) {
       )));
     }
   };
-}
-
-#[cfg(not(any(
-  target_arch = "x86_64",
-  all(target_os = "macos", target_arch = "aarch64")
-)))]
-fn copy_to_clipboard(_content: String, _app: &mut App) {
-  // do nothing as its a PITA to compile for ARM with XCB and this feature is not that important
 }
 
 /// inverse direction for natural scrolling on mouse and keyboard
