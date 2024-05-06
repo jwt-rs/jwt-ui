@@ -73,7 +73,7 @@ fn draw_secret_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let mut text = Text::from(
     "Prepend 'b64:' for base64 encoded secret. Prepend '@' for file path (.pem, .pk8, .der, .json)",
   );
-  text.patch_style(style_default(app.light_theme));
+  text = text.patch_style(style_default(app.light_theme));
   let paragraph = Paragraph::new(text).block(Block::default());
 
   f.render_widget(paragraph, chunks[0]);
@@ -105,7 +105,7 @@ fn draw_header_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
 
   let header = app.data.decoder.header.get_txt();
   let mut txt = Text::from(header.clone());
-  txt.patch_style(style_primary(app.light_theme));
+  txt = txt.patch_style(style_primary(app.light_theme));
 
   let paragraph = Paragraph::new(txt)
     .block(Block::default())
@@ -129,7 +129,7 @@ fn draw_payload_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
 
   let payload = app.data.decoder.payload.get_txt();
   let mut txt = Text::from(payload.clone());
-  txt.patch_style(style_primary(app.light_theme));
+  txt = txt.patch_style(style_primary(app.light_theme));
 
   let paragraph = Paragraph::new(txt)
     .block(Block::default())
