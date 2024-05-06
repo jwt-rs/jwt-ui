@@ -83,7 +83,7 @@ fn draw_secret_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
 
 fn check_verification_status(signature_verified: bool) -> &'static str {
   if signature_verified {
-    "Signature: ✅ Valid"
+    "Signature: ✔ Valid"
   } else {
     "Signature: ❌ Invalid"
   }
@@ -191,7 +191,7 @@ mod tests {
       r#"││                                              │││  "name": "John Doe",                           │"#,
       r#"│└──────────────────────────────────────────────┘││  "sub": "1234567890"                           │"#,
       r#"└────────────────────────────────────────────────┘│}                                               │"#,
-      r#"┌ Signature: ✅ Valid ───────────────────────────┐│                                                │"#,
+      r#"┌ Signature: ✔ Valid ────────────────────────────┐│                                                │"#,
       r#"│Prepend 'b64:' for base64 encoded secret. Prepen││                                                │"#,
       r#"│┌──────────────────────────────────────────────┐││                                                │"#,
       r#"││secret                                        │││                                                │"#,
@@ -203,11 +203,6 @@ mod tests {
     for row in 0..=19 {
       for col in 0..=99 {
         match (col, row) {
-          (14, 14) => {
-            expected.get_mut(col, row).set_style(
-              Style::default()
-            );
-          }
           (1..=15, 0) => {
             expected.get_mut(col, row).set_style(
               Style::default()
@@ -215,7 +210,7 @@ mod tests {
                 .add_modifier(Modifier::BOLD),
             );
           }
-          (51..=82, 0) | (51..=67, 8) | (1..=21, 14) => {
+          (51..=82, 0) | (51..=67, 8) | (1..=20, 14) => {
             expected.get_mut(col, row).set_style(
               Style::default()
                 .fg(COLOR_WHITE)
@@ -225,9 +220,10 @@ mod tests {
           (0 | 16..=49, 0) | (0..=49, 13) | (0 | 49, 1..=13 | 20..=99) => {
             expected
               .get_mut(col, row)
-              .set_style(Style::default().fg(COLOR_YELLOW));
+              .set_style(
+                Style::default().fg(COLOR_YELLOW)
+              );
           }
-
           (51, 1 | 4 | 9 | 11 | 13)
           | (51..=65, 2)
           | (51..=66, 3)
