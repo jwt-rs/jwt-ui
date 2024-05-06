@@ -85,7 +85,7 @@ fn check_verification_status(signature_verified: bool) -> &'static str {
   if signature_verified {
     "Signature: ✔ Valid"
   } else {
-    "Signature: ❌ Invalid"
+    "Signature: × Invalid"
   }
 }
 
@@ -220,9 +220,7 @@ mod tests {
           (0 | 16..=49, 0) | (0..=49, 13) | (0 | 49, 1..=13 | 20..=99) => {
             expected
               .get_mut(col, row)
-              .set_style(
-                Style::default().fg(COLOR_YELLOW)
-              );
+              .set_style(Style::default().fg(COLOR_YELLOW));
           }
           (51, 1 | 4 | 9 | 11 | 13)
           | (51..=65, 2)
