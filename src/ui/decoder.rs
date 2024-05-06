@@ -203,6 +203,11 @@ mod tests {
     for row in 0..=19 {
       for col in 0..=99 {
         match (col, row) {
+          (14, 14) => {
+            expected.get_mut(col, row).set_style(
+              Style::default()
+            );
+          }
           (1..=15, 0) => {
             expected.get_mut(col, row).set_style(
               Style::default()
