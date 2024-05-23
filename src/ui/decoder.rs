@@ -73,7 +73,7 @@ fn draw_secret_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let mut text = Text::from(
     "Prepend 'b64:' for base64 encoded secret. Prepend '@' for file path (.pem, .pk8, .der, .json)",
   );
-  text.patch_style(style_default(app.light_theme));
+  text = text.patch_style(style_default(app.light_theme));
   let paragraph = Paragraph::new(text).block(Block::default());
 
   f.render_widget(paragraph, chunks[0]);
@@ -83,9 +83,9 @@ fn draw_secret_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
 
 fn check_verification_status(signature_verified: bool) -> &'static str {
   if signature_verified {
-    "Signature: ✅ Valid"
+    "Signature: ✔ Valid"
   } else {
-    "Signature: ❌ Invalid"
+    "Signature: × Invalid"
   }
 }
 
@@ -105,7 +105,7 @@ fn draw_header_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
 
   let header = app.data.decoder.header.get_txt();
   let mut txt = Text::from(header.clone());
-  txt.patch_style(style_primary(app.light_theme));
+  txt = txt.patch_style(style_primary(app.light_theme));
 
   let paragraph = Paragraph::new(txt)
     .block(Block::default())
@@ -129,7 +129,7 @@ fn draw_payload_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
 
   let payload = app.data.decoder.payload.get_txt();
   let mut txt = Text::from(payload.clone());
-  txt.patch_style(style_primary(app.light_theme));
+  txt = txt.patch_style(style_primary(app.light_theme));
 
   let paragraph = Paragraph::new(txt)
     .block(Block::default())
@@ -191,7 +191,7 @@ mod tests {
       r#"││                                              │││  "name": "John Doe",                           │"#,
       r#"│└──────────────────────────────────────────────┘││  "sub": "1234567890"                           │"#,
       r#"└────────────────────────────────────────────────┘│}                                               │"#,
-      r#"┌ Signature: ✅ Valid ───────────────────────────┐│                                                │"#,
+      r#"┌ Signature: ✔ Valid ────────────────────────────┐│                                                │"#,
       r#"│Prepend 'b64:' for base64 encoded secret. Prepen││                                                │"#,
       r#"│┌──────────────────────────────────────────────┐││                                                │"#,
       r#"││secret                                        │││                                                │"#,
@@ -210,7 +210,7 @@ mod tests {
                 .add_modifier(Modifier::BOLD),
             );
           }
-          (51..=82, 0) | (51..=67, 8) | (1..=21, 14) => {
+          (51..=82, 0) | (51..=67, 8) | (1..=20, 14) => {
             expected.get_mut(col, row).set_style(
               Style::default()
                 .fg(COLOR_WHITE)
@@ -222,7 +222,6 @@ mod tests {
               .get_mut(col, row)
               .set_style(Style::default().fg(COLOR_YELLOW));
           }
-
           (51, 1 | 4 | 9 | 11 | 13)
           | (51..=65, 2)
           | (51..=66, 3)

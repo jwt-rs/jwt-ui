@@ -87,7 +87,7 @@ fn draw_secret_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let mut text = Text::from(
     "Prepend 'b64:' for base64 encoded secret. Prepend '@' for file path (.pem, .pk8, .der, .json)",
   );
-  text.patch_style(style_default(app.light_theme));
+  text = text.patch_style(style_default(app.light_theme));
   let paragraph = Paragraph::new(text).block(Block::default());
 
   f.render_widget(paragraph, chunks[0]);
@@ -111,7 +111,7 @@ fn draw_token_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
 
   let encoded = app.data.encoder.encoded.get_txt();
   let mut txt = Text::from(encoded.clone());
-  txt.patch_style(style_primary(app.light_theme));
+  txt = txt.patch_style(style_primary(app.light_theme));
 
   let paragraph = Paragraph::new(txt)
     .block(Block::default())
