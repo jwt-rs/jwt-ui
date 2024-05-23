@@ -175,7 +175,11 @@ impl App {
 
   pub fn refresh(&mut self) {
     self.data.error = String::new();
-    self.data = Data::default();
+    self.data = Data {
+      decoder: Decoder::new(None, "".into()),
+      encoder: Encoder::new("".into()),
+      ..Data::default()
+    };
     self.route_decoder();
   }
 

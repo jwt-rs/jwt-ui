@@ -194,6 +194,7 @@ fn panic_hook(info: &PanicInfo<'_>) {
   execute!(
     io::stdout(),
     LeaveAlternateScreen,
+    DisableMouseCapture,
     Print(format!(
       "thread '<unnamed>' panicked at '{}', {}\n\r{}",
       msg, location, stacktrace
@@ -214,6 +215,6 @@ fn panic_hook(info: &PanicInfo<'_>) {
   };
   let file_path = handle_dump(&meta, info);
   disable_raw_mode().unwrap();
-  execute!(io::stdout(), LeaveAlternateScreen).unwrap();
+  execute!(io::stdout(), LeaveAlternateScreen, DisableMouseCapture).unwrap();
   print_msg(file_path, &meta).expect("human-panic: printing error message to console failed");
 }
