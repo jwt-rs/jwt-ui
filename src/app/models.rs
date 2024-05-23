@@ -2,6 +2,7 @@ use ratatui::{layout::Rect, widgets::TableState, Frame};
 
 use super::{ActiveBlock, App, Route};
 
+#[allow(dead_code)]
 pub trait AppResource {
   fn render(block: ActiveBlock, f: &mut Frame<'_>, app: &mut App, area: Rect);
 }
