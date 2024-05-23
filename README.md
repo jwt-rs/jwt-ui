@@ -76,7 +76,7 @@ scoop install jwt-ui
 If you have Cargo installed then you install JWT UI from crates.io
 
 ```bash
-cargo install jwt-ui
+cargo install jwt-ui --locked
 ```
 
 You can also clone the repo and run `cargo run` or `make` to build and run the app
