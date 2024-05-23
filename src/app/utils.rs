@@ -174,7 +174,7 @@ fn map_external_error(ext_err: &Error) -> String {
           "The JWT provided is invalid".to_string()
         }
         ErrorKind::InvalidSignature => {
-          "The JWT provided has an invalid signature".to_string()
+          "The JWT provided has an invalid signature. Provide a valid secret".to_string()
         }
         ErrorKind::InvalidRsaKey(_) => {
           "The secret provided isn't a valid RSA key".to_string()

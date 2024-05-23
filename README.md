@@ -129,6 +129,7 @@ jwtui [OPTIONS] [TOKEN]
 
 # Start UI with prefilled token to decode and JWKS secret from URL
 jwtui -S $(curl https://domain.auth0.com/.well-known/jwks.json) [TOKEN]
+# if your provider has a different URL for JWKS, look for `jwks_uri` in https://your.idp.com/.well-known/openid-configuration
 
 # Print decoded token to stdout with HMAC plain text secret
 jwtui -s -S 'plain_text_secret' [TOKEN]
@@ -140,7 +141,7 @@ jwtui -sn [TOKEN]
 jwtui -s -S 'b64:eW91ci0yNTYtYml0LXNlY3JldAo=' [TOKEN]
 
 # Print decoded token to stdout as JSON
-jwtui -sj -S '@./secret.pem' [TOKEN]
+jwtui -j -S '@./secret.pem' [TOKEN]
 
 # Print decoded token to stdout with JWKS secret from url
 jwtui -s -S $(curl https://domain.auth0.com/.well-known/jwks.json) [TOKEN]
@@ -156,7 +157,7 @@ Options:
 - `-S, --secret <SECRET>` Secret for validating the JWT. Can be text, file path (beginning with @) or base64 encoded string (beginning with b64:) [default: ]
 - `-s, --stdout` Print to STDOUT instead of starting the CLI in TUI mode
 - `-n, --no-verify` Do not validate the signature of the JWT when printing to STDOUT.
-- `-j, --json` Format STDOUT as JSON
+- `-j, --json` Print to STDOUT as JSON
 - `-t, --tick-rate <TICK_RATE>` Set the tick rate (milliseconds): the lower the number the higher the FPS. Must be less than 1000 [default: 250]
 - `-h, --help` Print help
 - `-V, --version` Print version

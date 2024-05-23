@@ -44,7 +44,7 @@ pub struct Cli {
   /// Do not validate the signature of the JWT when printing to STDOUT.
   #[arg(short, long, value_parser, default_value_t = false)]
   pub no_verify: bool,
-  /// Format STDOUT as JSON.
+  /// Print to STDOUT as JSON.
   #[arg(short, long, value_parser, default_value_t = false)]
   pub json: bool,
   /// Set the tick rate (milliseconds): the lower the number the higher the FPS. Must be less than 1000.
@@ -66,7 +66,7 @@ fn main() -> Result<()> {
     panic!("Tick rate must be below 1000");
   }
 
-  if cli.stdout && cli.token.is_some() {
+  if (cli.stdout || cli.json) && cli.token.is_some() {
     to_stdout(cli);
   } else {
     // The UI must run in the "main" thread

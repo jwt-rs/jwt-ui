@@ -371,10 +371,9 @@ mod tests {
     let (decode_only, verified_token_data) = decode_token(&args);
 
     assert!(decode_only.is_ok());
-    assert!(verified_token_data
-      .unwrap_err()
-      .to_string()
-      .contains("The JWT provided has an invalid signature: InvalidSignature"));
+    assert!(verified_token_data.unwrap_err().to_string().contains(
+      "The JWT provided has an invalid signature. Provide a valid secret: InvalidSignature"
+    ));
 
     let decode_only_token = decode_only.unwrap();
 
