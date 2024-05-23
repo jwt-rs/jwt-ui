@@ -83,9 +83,9 @@ fn draw_secret_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
 
 fn check_verification_status(signature_verified: bool) -> &'static str {
   if signature_verified {
-    "Signature: ✔ Valid"
+    "Signature: Valid ✔"
   } else {
-    "Signature: × Invalid"
+    "Signature: Invalid ×"
   }
 }
 
@@ -191,7 +191,7 @@ mod tests {
       r#"││                                              │││  "name": "John Doe",                           │"#,
       r#"│└──────────────────────────────────────────────┘││  "sub": "1234567890"                           │"#,
       r#"└────────────────────────────────────────────────┘│}                                               │"#,
-      r#"┌ Signature: ✔ Valid ────────────────────────────┐│                                                │"#,
+      r#"┌ Signature: Valid ✔ ────────────────────────────┐│                                                │"#,
       r#"│Prepend 'b64:' for base64 encoded secret. Prepen││                                                │"#,
       r#"│┌──────────────────────────────────────────────┐││                                                │"#,
       r#"││secret                                        │││                                                │"#,
