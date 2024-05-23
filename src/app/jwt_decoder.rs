@@ -171,7 +171,6 @@ pub fn decode_jwt_token(app: &mut App, no_verify: bool) {
 pub fn print_decoded_token(token: &TokenData<Payload>, json: bool) {
   match json {
     true => {
-      println!("\nToken JSON\n----------");
       println!(
         "{}",
         to_string_pretty(&TokenOutput::new(token.clone())).unwrap()
