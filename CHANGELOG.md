@@ -2,12 +2,21 @@
 
 ## Unreleased - 2023-XX-YY
 
+## [1.3.0] - 2024-05-23
+
+- Fix crash on refresh
+- Fix compilation error on cargo install (https://github.com/jwt-rs/jwt-ui/pull/36)
+- Print valid JSON when using `--json` flag
+- Arch Linux package (https://github.com/jwt-rs/jwt-ui/pull/34)
+- Minor updates and library upgrades
+
 ## [1.1.0] - 2024-01-22
 
 - Linux musl builds as default
 - Aarch64 build for windows
 - ARM v7 builds for Linux
-- 
+-
+
 ## [1.0.7] - 2024-01-22
 
 - Update clipboard dependencies to fix security vulnerability
