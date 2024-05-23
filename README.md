@@ -81,7 +81,7 @@ cargo install jwt-ui --locked
 
 You can also clone the repo and run `cargo run` or `make` to build and run the app
 
-### Arch Linux
+### Arch Linux [Maintained by [@orhun](https://github.com/orhun)]
 
 `jwt-ui` is available in the [official repositories](https://archlinux.org/packages/extra/x86_64/jwt-ui). You can install it using [pacman](https://wiki.archlinux.org/title/pacman):
 
