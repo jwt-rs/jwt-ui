@@ -13,12 +13,12 @@ hash_mac_arm = args[5].strip()
 hash_linux = args[6].strip()
 
 print("Generating formula")
-print("     VERSION: %s" % version)
-print("     TEMPLATE PATH: %s" % template_file_path)
-print("     SAVING AT: %s" % generated_file_path)
-print("     MAC HASH: %s" % hash_mac)
-print("     MAC ARM HASH: %s" % hash_mac_arm)
-print("     LINUX HASH: %s" % hash_linux)
+print(f"     VERSION: {version}")
+print(f"     TEMPLATE PATH: {template_file_path}")
+print(f"     SAVING AT: {generated_file_path}")
+print(f"     MAC HASH: {hash_mac}")
+print(f"     MAC ARM HASH: {hash_mac_arm}")
+print(f"     LINUX HASH: {hash_linux}")
 
 with open(template_file_path, "r") as template_file:
     template = Template(template_file.read())
