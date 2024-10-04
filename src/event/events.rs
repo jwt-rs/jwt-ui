@@ -10,6 +10,7 @@ use crossterm::event::{self, Event as CEvent, KeyEvent, MouseEvent};
 use super::Key;
 
 #[derive(Debug, Clone, Copy)]
+#[allow(dead_code)]
 /// Configuration for event handling.
 pub struct EventConfig {
   pub exit_key: Key,
