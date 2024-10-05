@@ -104,8 +104,7 @@ fn draw_header_block(f: &mut Frame<'_>, app: &mut App, area: Rect) {
   let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
 
   let header = app.data.decoder.header.get_txt();
-  let mut txt = Text::from(header.clone());
-  txt = txt.patch_style(style_primary(app.light_theme));
+  let txt = Text::from(header).patch_style(style_primary(app.light_theme));
 
   let paragraph = Paragraph::new(txt)
     .block(Block::default())

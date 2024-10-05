@@ -247,21 +247,17 @@ mod tests {
 
     assert_eq!(item.state.selected(), Some(0));
 
-    item.handle_scroll(false, false);
-    assert_eq!(item.state.selected(), Some(1));
+    for expected in &[1, 2, 2] {
+      item.handle_scroll(false, false);
+      assert_eq!(item.state.selected(), Some(*expected));
+    }
 
-    item.handle_scroll(false, false);
-    assert_eq!(item.state.selected(), Some(2));
-
-    item.handle_scroll(false, false);
-    assert_eq!(item.state.selected(), Some(2));
-    // previous
     item.handle_scroll(true, false);
     assert_eq!(item.state.selected(), Some(1));
-    // page down
+
     item.handle_scroll(false, true);
     assert_eq!(item.state.selected(), Some(2));
-    // page up
+
     item.handle_scroll(true, true);
     assert_eq!(item.state.selected(), Some(0));
   }
