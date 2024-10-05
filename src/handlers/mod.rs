@@ -1,5 +1,6 @@
 use crossterm::event::{Event, KeyEvent, MouseButton, MouseEvent, MouseEventKind};
 use ratatui::layout::Rect;
+use std::collections::HashMap;
 use tui_input::{backend::crossterm::EventHandler, Input};
 use tui_textarea::TextArea;
 
@@ -11,66 +12,92 @@ use crate::{
   event::Key,
 };
 
+type KeyBindings = HashMap<Key, Box<dyn Fn(&mut App)>>;
+
 pub fn handle_key_events(key: Key, key_event: KeyEvent, app: &mut App) {
-  // if input is enabled capture keystrokes
   if !is_any_text_editing(app, key, key_event) {
-    // First handle any global event and then move to route event
-    match key {
-      _ if key == DEFAULT_KEYBINDING.esc.key && app.get_current_route().id == RouteId::Help => {
-        app.pop_navigation_stack();
-      }
-      _ if key == DEFAULT_KEYBINDING.quit.key || key == DEFAULT_KEYBINDING.quit.alt.unwrap() => {
-        app.should_quit = true;
-      }
-      _ if key == DEFAULT_KEYBINDING.up.key || key == DEFAULT_KEYBINDING.up.alt.unwrap() => {
-        handle_block_scroll(app, true, false, false);
-      }
-      _ if key == DEFAULT_KEYBINDING.down.key || key == DEFAULT_KEYBINDING.down.alt.unwrap() => {
-        handle_block_scroll(app, false, false, false);
-      }
-      _ if key == DEFAULT_KEYBINDING.pg_up.key => {
-        handle_block_scroll(app, true, false, true);
-      }
-      _ if key == DEFAULT_KEYBINDING.pg_down.key => {
-        handle_block_scroll(app, false, false, true);
-      }
-      _ if key == DEFAULT_KEYBINDING.right.key || key == DEFAULT_KEYBINDING.right.alt.unwrap() => {
-        handle_right_key_events(app);
-      }
-      _ if key == DEFAULT_KEYBINDING.left.key || key == DEFAULT_KEYBINDING.left.alt.unwrap() => {
-        handle_left_key_events(app);
-      }
-      _ if key == DEFAULT_KEYBINDING.toggle_theme.key => {
-        app.light_theme = !app.light_theme;
-      }
-      _ if key == DEFAULT_KEYBINDING.refresh.key => app.refresh(),
-      _ if key == DEFAULT_KEYBINDING.help.key
-        && app.get_current_route().active_block != ActiveBlock::Help =>
-      {
-        app.push_navigation_stack(RouteId::Help, ActiveBlock::Help);
-      }
-      _ if key == DEFAULT_KEYBINDING.jump_to_decoder.key
-        && app.get_current_route().id != RouteId::Decoder =>
-      {
-        app.route_decoder();
-      }
-      _ if key == DEFAULT_KEYBINDING.jump_to_encoder.key
-        && app.get_current_route().id != RouteId::Encoder =>
-      {
-        app.route_encoder();
-      }
-      _ if key == DEFAULT_KEYBINDING.cycle_main_views.key => app.cycle_main_routes(),
+      let mut key_bindings: KeyBindings = HashMap::new();
 
-      _ if key == DEFAULT_KEYBINDING.toggle_input_edit.key
-        || key == DEFAULT_KEYBINDING.toggle_input_edit.alt.unwrap() =>
-      {
-        handle_edit_event(app)
+      key_bindings.insert(DEFAULT_KEYBINDING.esc.key, Box::new(|app| {
+          if app.get_current_route().id == RouteId::Help {
+              app.pop_navigation_stack();
+          }
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.quit.key, Box::new(|app| {
+          app.should_quit = true;
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.quit.alt.unwrap(), Box::new(|app| {
+          app.should_quit = true;
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.up.key, Box::new(|app| {
+          handle_block_scroll(app, true, false, false);
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.up.alt.unwrap(), Box::new(|app| {
+          handle_block_scroll(app, true, false, false);
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.down.key, Box::new(|app| {
+          handle_block_scroll(app, false, false, false);
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.down.alt.unwrap(), Box::new(|app| {
+          handle_block_scroll(app, false, false, false);
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.pg_up.key, Box::new(|app| {
+          handle_block_scroll(app, true, false, true);
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.pg_down.key, Box::new(|app| {
+          handle_block_scroll(app, false, false, true);
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.right.key, Box::new(|app| {
+          handle_right_key_events(app);
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.right.alt.unwrap(), Box::new(|app| {
+          handle_right_key_events(app);
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.left.key, Box::new(|app| {
+          handle_left_key_events(app);
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.left.alt.unwrap(), Box::new(|app| {
+          handle_left_key_events(app);
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.toggle_theme.key, Box::new(|app| {
+          app.light_theme = !app.light_theme;
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.refresh.key, Box::new(|app| {
+          app.refresh();
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.help.key, Box::new(|app| {
+          if app.get_current_route().active_block != ActiveBlock::Help {
+              app.push_navigation_stack(RouteId::Help, ActiveBlock::Help);
+          }
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.jump_to_decoder.key, Box::new(|app| {
+          if app.get_current_route().id != RouteId::Decoder {
+              app.route_decoder();
+          }
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.jump_to_encoder.key, Box::new(|app| {
+          if app.get_current_route().id != RouteId::Encoder {
+              app.route_encoder();
+          }
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.cycle_main_views.key, Box::new(|app| {
+          app.cycle_main_routes();
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.toggle_input_edit.key, Box::new(|app| {
+          handle_edit_event(app);
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.toggle_input_edit.alt.unwrap(), Box::new(|app| {
+          handle_edit_event(app);
+      }));
+      key_bindings.insert(DEFAULT_KEYBINDING.copy_to_clipboard.key, Box::new(|app| {
+          handle_copy_event(app);
+      }));
+
+      if let Some(action) = key_bindings.get(&key) {
+          action(app);
+      } else {
+          handle_route_events(key, app);
       }
-
-      _ if key == DEFAULT_KEYBINDING.copy_to_clipboard.key => handle_copy_event(app),
-
-      _ => handle_route_events(key, app),
-    }
   }
 }
 
@@ -96,32 +123,22 @@ fn handle_edit_event(app: &mut App) {
 }
 
 fn handle_copy_event(app: &mut App) {
+  if let Some(text) = get_text_to_copy(app) {
+    copy_to_clipboard(text, app);
+  }
+}
+
+fn get_text_to_copy(app: &App) -> Option<String> {
   match app.get_current_route().active_block {
-    ActiveBlock::DecoderToken => {
-      copy_to_clipboard(app.data.decoder.encoded.input.value().into(), app);
-    }
-    ActiveBlock::DecoderHeader => {
-      copy_to_clipboard(app.data.decoder.header.get_txt(), app);
-    }
-    ActiveBlock::DecoderPayload => {
-      copy_to_clipboard(app.data.decoder.payload.get_txt(), app);
-    }
-    ActiveBlock::DecoderSecret => {
-      copy_to_clipboard(app.data.decoder.secret.input.value().into(), app);
-    }
-    ActiveBlock::EncoderToken => {
-      copy_to_clipboard(app.data.encoder.encoded.get_txt(), app);
-    }
-    ActiveBlock::EncoderHeader => {
-      copy_to_clipboard(app.data.encoder.header.input.lines().join("\n"), app);
-    }
-    ActiveBlock::EncoderPayload => {
-      copy_to_clipboard(app.data.encoder.payload.input.lines().join("\n"), app);
-    }
-    ActiveBlock::EncoderSecret => {
-      copy_to_clipboard(app.data.encoder.secret.input.value().into(), app);
-    }
-    _ => { /* Do nothing */ }
+    ActiveBlock::DecoderToken => Some(app.data.decoder.encoded.input.value().into()),
+    ActiveBlock::DecoderHeader => Some(app.data.decoder.header.get_txt()),
+    ActiveBlock::DecoderPayload => Some(app.data.decoder.payload.get_txt()),
+    ActiveBlock::DecoderSecret => Some(app.data.decoder.secret.input.value().into()),
+    ActiveBlock::EncoderToken => Some(app.data.encoder.encoded.get_txt()),
+    ActiveBlock::EncoderHeader => Some(app.data.encoder.header.input.lines().join("\n")),
+    ActiveBlock::EncoderPayload => Some(app.data.encoder.payload.input.lines().join("\n")),
+    ActiveBlock::EncoderSecret => Some(app.data.encoder.secret.input.value().into()),
+    _ => None,
   }
 }
 

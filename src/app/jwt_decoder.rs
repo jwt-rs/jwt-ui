@@ -686,7 +686,9 @@ mod tests {
     let secret_file_name = "./test_data/test_ecdsa_public_key.pem";
     let alg = Algorithm::ES384;
 
-    let secret_string = format!("@{}", secret_file_name);
+    let mut secret_string = String::with_capacity(secret_file_name.len() + 1);
+    secret_string.push('@');
+    secret_string.push_str(secret_file_name);
 
     let result = decoding_key_from_secret(&alg, &secret_string, None);
 

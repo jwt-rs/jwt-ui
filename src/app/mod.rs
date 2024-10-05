@@ -99,6 +99,7 @@ pub struct Data {
 }
 
 /// Holds main application state
+#[allow(dead_code)]
 pub struct App {
   navigation_stack: Vec<Route>,
   pub title: &'static str,

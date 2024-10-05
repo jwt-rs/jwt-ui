@@ -1,4 +1,3 @@
-import hashlib
 import sys
 from string import Template
 
@@ -11,10 +10,10 @@ generated_file_path = args[3]
 hash_64 = args[4].strip()
 
 print("Generating formula")
-print("     VERSION: %s" % version64)
-print("     TEMPLATE PATH: %s" % template_file_path)
-print("     SAVING AT: %s" % generated_file_path)
-print("     HASH: %s" % hash_64)
+print(f"     VERSION: {version64}")
+print(f"     TEMPLATE PATH: {template_file_path}")
+print(f"     SAVING AT: {generated_file_path}")
+print(f"     HASH: {hash_64}")
 
 with open(template_file_path, "r") as template_file:
     template = Template(template_file.read())
