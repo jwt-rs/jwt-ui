@@ -125,8 +125,10 @@ pub fn decoding_key_from_jwks_secret(
   ))
 }
 
-pub fn slurp_file(file_name: String) -> io::Result<Vec<u8>> {
-  fs::read(file_name)
+pub fn slurp_file(file_name: String, safe_directory: &str) -> io::Result<Vec<u8>> {
+    let full_path = Path::new(safe_directory).join(file_name);
+
+    fs::read(full_path)
 }
 
 fn decoding_key_from_jwks(jwks: jwk::JwkSet, header: &Header) -> JWTResult<DecodingKey> {
