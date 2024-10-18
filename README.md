@@ -73,7 +73,7 @@ scoop install jwt-ui
 
 ### Cargo
 
-If you have Cargo installed then you install JWT UI from crates.io
+If you have Cargo installed, you can install JWT UI from crates.io.
 
 ```bash
 cargo install jwt-ui --locked
@@ -113,7 +113,7 @@ Binaries for macOS (x86_64, arm64), Linux GNU/MUSL(x86_64, armv6, armv7, aarch64
 
 1. Download the latest [binary](https://github.com/jwt-rs/jwt-ui/releases) for your OS.
 1. For Linux/macOS:
-   1. `cd` to the file you just downloaded and run `tar -C /usr/local/bin -xzf downloaded-file-name`. Use sudo if required.
+   1. `cd` to the file you just downloaded and run `tar -C /usr/local/bin -xzf downloaded-file-name`. Use `sudo` if required.
    2. Run with `jwtui`
 1. For Windows:
    1. Use 7-Zip or TarTool to unpack the tar file.
