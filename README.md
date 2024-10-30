@@ -30,12 +30,13 @@ A terminal UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](https:/
 Crafted by
 
 <img src="artwork/Auth0byOkta_logo.svg" alt="Auth0 by Okta" style="width:120px;"/>
+
 ## Table of Contents
 
   - [Features](#features)
   - [Installation](#installation)
-    - [Homebrew (Mac & Linux)](#homebrew-%28mac-&-linux%29)
-    - [Scoop (Windows)](#scoop-%28windows%29)
+    - [Homebrew (Mac & Linux)](#homebrew-(mac-&-linux))
+    - [Scoop (Windows)](#scoop-(windows))
     - [Cargo](#cargo)
     - [Arch Linux](#arch-linux)
     - [Install script](#install-script)
@@ -47,7 +48,7 @@ Crafted by
     - [Encoder screen](#encoder-screen)
     - [Stdout](#stdout)
   - [Troubleshooting](#troubleshooting)
-  - [Limitations/known issues](#limitations%2Fknown-issues)
+  - [Limitations/known issues](#limitations/known-issues)
   - [Libraries used](#libraries-used)
   - [License](#license)
   - [Release](#release)
