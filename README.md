@@ -1,5 +1,18 @@
 # JWT UI - A Terminal UI for decoding/encoding JSON Web Tokens
 
+```
+     ____.__      _____________       ____ ___.___
+    |    /  \    /  \__    ___/      |    |   \   |
+    |    \   \/\/   / |    |  ______ |    |   /   |
+/\__|    |\        /  |    | /_____/ |    |  /|   |
+\________| \__/\  /   |____|         |______/ |___|
+                \/
+```
+
+A terminal UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](https://jwt.io/) and [jwt-cli](https://github.com/mike-engel/jwt-cli)
+
+![UI](screenshots/decoder.png)
+
 ![ci](https://github.com/jwt-rs/jwt-ui/actions/workflows/ci.yml/badge.svg)
 ![cd](https://github.com/jwt-rs/jwt-ui/actions/workflows/cd.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-blueviolet.svg)
@@ -14,22 +27,31 @@
 
 [![Follow Deepu K Sasidharan (deepu105)](https://img.shields.io/twitter/follow/deepu105?label=Follow%20Deepu%20K%20Sasidharan%20%28deepu105%29&style=social)](https://twitter.com/intent/follow?screen_name=deepu105)
 
-```
-     ____.__      _____________       ____ ___.___
-    |    /  \    /  \__    ___/      |    |   \   |
-    |    \   \/\/   / |    |  ______ |    |   /   |
-/\__|    |\        /  |    | /_____/ |    |  /|   |
-\________| \__/\  /   |____|         |______/ |___|
-                \/
-```
-
-A terminal UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](https://jwt.io/) and [jwt-cli](https://github.com/mike-engel/jwt-cli)
-
-![UI](screenshots/decoder.png)
-
 Crafted by
 
 <img src="artwork/Auth0byOkta_logo.svg" alt="Auth0 by Okta" style="width:120px;"/>
+## Table of Contents
+
+  - [Features](#features)
+  - [Installation](#installation)
+    - [Homebrew (Mac & Linux)](#homebrew-%28mac-&-linux%29)
+    - [Scoop (Windows)](#scoop-%28windows%29)
+    - [Cargo](#cargo)
+    - [Arch Linux](#arch-linux)
+    - [Install script](#install-script)
+    - [Docker](#docker)
+    - [Manual](#manual)
+  - [Usage](#usage)
+  - [Screenshots](#screenshots)
+    - [Decoder screen](#decoder-screen)
+    - [Encoder screen](#encoder-screen)
+    - [Stdout](#stdout)
+  - [Troubleshooting](#troubleshooting)
+  - [Limitations/known issues](#limitations%2Fknown-issues)
+  - [Libraries used](#libraries-used)
+  - [License](#license)
+  - [Release](#release)
+  - [Creator](#creator)
 
 ## Features
 
@@ -81,7 +103,9 @@ cargo install jwt-ui --locked
 
 You can also clone the repo and run `cargo run` or `make` to build and run the app
 
-### Arch Linux [Maintained by [@orhun](https://github.com/orhun)]
+### Arch Linux
+
+[Maintained by [@orhun](https://github.com/orhun)]
 
 `jwt-ui` is available in the [official repositories](https://archlinux.org/packages/extra/x86_64/jwt-ui). You can install it using [pacman](https://wiki.archlinux.org/title/pacman):
 
@@ -119,7 +143,7 @@ Binaries for macOS (x86_64, arm64), Linux GNU/MUSL(x86_64, armv6, armv7, aarch64
    1. Use 7-Zip or TarTool to unpack the tar file.
    2. Run the executable file `jwtui.exe`
 
-## USAGE:
+## Usage
 
 ```shell
 # Start UI
@@ -185,7 +209,7 @@ If you are looking for a non TUI CLI, check out [jwt-cli](https://github.com/mik
 
 > Note: On Linux you might need to have package `xorg-dev` (Debian/Ubuntu) or `xorg-x11-server-devel` (Fedora) or equivalent installed for the copy to clipboard features to work
 
-## Limitations/Known issues
+## Limitations/known issues
 
 - **[Linux/Docker]** Copy to clipboard feature is OS/arch dependent and might crash in some Linux distros and is not supported on `aarch64` and `arm` machines.
 - **[macOS]** KDash looks better on iTerm2 since macOS's default Terminal app makes the colors render weird.
@@ -199,7 +223,7 @@ If you are looking for a non TUI CLI, check out [jwt-cli](https://github.com/mik
 - [clap](https://github.com/clap-rs/clap)
 - [rust-clipboard](https://github.com/aweinstock314/rust-clipboard)
 
-## Licence
+## License
 
 MIT
 
