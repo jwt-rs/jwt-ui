@@ -159,7 +159,7 @@ mod tests {
 
   #[test]
   fn test_encode_hmac_jwt_token_with_valid_payload_and_defaults() {
-    let mut app = App::new(250, None, "secrets".into());
+    let mut app = App::new(None, "secrets".into());
 
     app.data.encoder.payload.input = vec![
       "{",
@@ -193,7 +193,7 @@ mod tests {
 
   #[test]
   fn test_encode_rsa_jwt_token_with_valid_payload_and_header() {
-    let mut app = App::new(250, None, "".into());
+    let mut app = App::new(None, "".into());
 
     let header = vec!["{", r#"  "alg": "RS256","#, r#"  "typ": "JWT""#, "}"];
     app.data.encoder.header.input = header.clone().into();
@@ -240,7 +240,7 @@ mod tests {
 
   #[test]
   fn test_encode_rsa_pss_jwt_token_with_valid_payload_and_header() {
-    let mut app = App::new(250, None, "".into());
+    let mut app = App::new(None, "".into());
 
     let header = vec!["{", r#"  "alg": "PS256","#, r#"  "typ": "JWT""#, "}"];
     app.data.encoder.header.input = header.clone().into();
@@ -283,7 +283,7 @@ mod tests {
 
   #[test]
   fn test_encode_ecdsa_jwt_token_with_valid_payload_and_header() {
-    let mut app = App::new(250, None, "".into());
+    let mut app = App::new(None, "".into());
 
     let header = vec!["{", r#"  "alg": "ES256","#, r#"  "typ": "JWT""#, "}"];
     app.data.encoder.header.input = header.clone().into();
@@ -326,7 +326,7 @@ mod tests {
 
   #[test]
   fn test_encode_eddsa_jwt_token_with_valid_payload_and_header() {
-    let mut app = App::new(250, None, "".into());
+    let mut app = App::new(None, "".into());
 
     let header = vec!["{", r#"  "alg": "EdDSA","#, r#"  "typ": "JWT""#, "}"];
     app.data.encoder.header.input = header.clone().into();
@@ -369,7 +369,7 @@ mod tests {
 
   #[test]
   fn test_encode_jwt_token_with_empty_header() {
-    let mut app = App::new(250, None, "".into());
+    let mut app = App::new(None, "".into());
 
     app.data.encoder.header.input = TextArea::default();
 
@@ -380,7 +380,7 @@ mod tests {
 
   #[test]
   fn test_encode_jwt_token_with_empty_payload() {
-    let mut app = App::new(250, None, "".into());
+    let mut app = App::new(None, "".into());
 
     app.data.encoder.payload.input = TextArea::default();
 
@@ -391,7 +391,7 @@ mod tests {
 
   #[test]
   fn test_encode_jwt_token_with_invalid_header() {
-    let mut app = App::new(250, None, "".into());
+    let mut app = App::new(None, "".into());
 
     app.data.encoder.header.input = vec!["{", r#"  "sub": "1234567890""#, "}"].into();
 

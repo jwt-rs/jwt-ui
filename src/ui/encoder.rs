@@ -162,7 +162,7 @@ mod tests {
 
   #[test]
   fn test_draw_encoder() {
-    let mut app = App::new(250, None, "secret".into());
+    let mut app = App::new(None, "secret".into());
 
     app.data.encoder.payload.input = vec![
       "{",

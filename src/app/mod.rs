@@ -104,17 +104,8 @@ pub struct App {
   pub title: &'static str,
   pub should_quit: bool,
   pub main_tabs: TabsState,
-  #[allow(dead_code)]
-  pub is_loading: bool,
-  #[allow(dead_code)]
   pub is_routing: bool,
-  #[allow(dead_code)]
-  pub tick_rate: u64,
   pub size: Rect,
-  #[allow(dead_code)]
-  pub dialog: Option<String>,
-  #[allow(dead_code)]
-  pub confirm: bool,
   pub light_theme: bool,
   pub help_docs: StatefulTable<Vec<String>>,
   pub block_map: HashMap<Route, Rect>,
@@ -143,12 +134,8 @@ impl Default for App {
           },
         },
       ]),
-      is_loading: false,
       is_routing: false,
-      tick_rate: 0,
       size: Rect::default(),
-      dialog: None,
-      confirm: false,
       light_theme: false,
       help_docs: StatefulTable::with_items(key_binding::get_help_docs()),
       block_map: HashMap::new(),
@@ -158,9 +145,8 @@ impl Default for App {
 }
 
 impl App {
-  pub fn new(tick_rate: u64, token: Option<String>, secret: String) -> Self {
+  pub fn new(token: Option<String>, secret: String) -> Self {
     App {
-      tick_rate,
       data: Data {
         decoder: Decoder::new(token, secret.clone()),
         encoder: Encoder::new(secret),
@@ -250,7 +236,7 @@ mod tests {
 
   #[test]
   fn test_on_tick_first_render() {
-    let mut app = App::new(250, Some("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o".to_string()), "secret".to_string());
+    let mut app = App::new( Some("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o".to_string()), "secret".to_string());
 
     // test first render
     app.on_tick();

@@ -1,18 +1,5 @@
 # JWT UI - A Terminal UI for decoding/encoding JSON Web Tokens
 
-```
-     ____.__      _____________       ____ ___.___
-    |    /  \    /  \__    ___/      |    |   \   |
-    |    \   \/\/   / |    |  ______ |    |   /   |
-/\__|    |\        /  |    | /_____/ |    |  /|   |
-\________| \__/\  /   |____|         |______/ |___|
-                \/
-```
-
-A terminal UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](https://jwt.io/) and [jwt-cli](https://github.com/mike-engel/jwt-cli)
-
-![UI](screenshots/decoder.png)
-
 ![ci](https://github.com/jwt-rs/jwt-ui/actions/workflows/ci.yml/badge.svg)
 ![cd](https://github.com/jwt-rs/jwt-ui/actions/workflows/cd.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-blueviolet.svg)
@@ -27,32 +14,45 @@ A terminal UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](https:/
 
 [![Follow Deepu K Sasidharan (deepu105)](https://img.shields.io/twitter/follow/deepu105?label=Follow%20Deepu%20K%20Sasidharan%20%28deepu105%29&style=social)](https://twitter.com/intent/follow?screen_name=deepu105)
 
+```
+     ____.__      _____________       ____ ___.___
+    |    /  \    /  \__    ___/      |    |   \   |
+    |    \   \/\/   / |    |  ______ |    |   /   |
+/\__|    |\        /  |    | /_____/ |    |  /|   |
+\________| \__/\  /   |____|         |______/ |___|
+                \/
+```
+
+A terminal UI for decoding/encoding JSON Web Tokens inspired by [JWT.io](https://jwt.io/) and [jwt-cli](https://github.com/mike-engel/jwt-cli)
+
+![UI](screenshots/decoder.png)
+
 Crafted by
 
 <img src="artwork/Auth0byOkta_logo.svg" alt="Auth0 by Okta" style="width:120px;"/>
 
 ## Table of Contents
 
-  - [Features](#features)
-  - [Installation](#installation)
-    - [Homebrew (Mac & Linux)](#homebrew-(mac-&-linux))
-    - [Scoop (Windows)](#scoop-(windows))
-    - [Cargo](#cargo)
-    - [Arch Linux](#arch-linux)
-    - [Install script](#install-script)
-    - [Docker](#docker)
-    - [Manual](#manual)
-  - [Usage](#usage)
-  - [Screenshots](#screenshots)
-    - [Decoder screen](#decoder-screen)
-    - [Encoder screen](#encoder-screen)
-    - [Stdout](#stdout)
-  - [Troubleshooting](#troubleshooting)
-  - [Limitations/known issues](#limitations/known-issues)
-  - [Libraries used](#libraries-used)
-  - [License](#license)
-  - [Release](#release)
-  - [Creator](#creator)
+- [Features](#features)
+- [Installation](#installation)
+  - [Homebrew (Mac & Linux)](<#homebrew-(mac-&-linux)>)
+  - [Scoop (Windows)](<#scoop-(windows)>)
+  - [Cargo](#cargo)
+  - [Arch Linux](#arch-linux)
+  - [Install script](#install-script)
+  - [Docker](#docker)
+  - [Manual](#manual)
+- [Usage](#usage)
+- [Screenshots](#screenshots)
+  - [Decoder screen](#decoder-screen)
+  - [Encoder screen](#encoder-screen)
+  - [Stdout](#stdout)
+- [Troubleshooting](#troubleshooting)
+- [Limitations/known issues](#limitations/known-issues)
+- [Libraries used](#libraries-used)
+- [License](#license)
+- [Release](#release)
+- [Creator](#creator)
 
 ## Features
 

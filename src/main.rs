@@ -8,7 +8,7 @@ mod ui;
 use std::{
   error::Error,
   io::{self, stdout, Stdout, Write},
-  panic::{self, PanicInfo},
+  panic::{self, PanicHookInfo},
 };
 
 use app::{jwt_decoder::print_decoded_token, App};
@@ -77,7 +77,7 @@ fn main() -> Result<()> {
 }
 
 fn to_stdout(cli: Cli) {
-  let mut app = App::new(cli.tick_rate, cli.token.clone(), cli.secret.clone());
+  let mut app = App::new(cli.token.clone(), cli.secret.clone());
   // print decoded result to stdout
   decode_jwt_token(&mut app, cli.no_verify);
   if app.data.error.is_empty() && app.data.decoder.is_decoded() {
@@ -117,7 +117,7 @@ fn start_ui(cli: Cli) -> Result<()> {
   // custom events
   let events = event::Events::new(cli.tick_rate);
 
-  let mut app = App::new(cli.tick_rate, cli.token.clone(), cli.secret.clone());
+  let mut app = App::new(cli.token.clone(), cli.secret.clone());
   // main UI loop
   loop {
     // Get the size of the screen on each loop to account for resize event
@@ -174,7 +174,7 @@ fn shutdown(mut terminal: Terminal<CrosstermBackend<Stdout>>) -> io::Result<()> 
 }
 
 #[cfg(debug_assertions)]
-fn panic_hook(info: &PanicInfo<'_>) {
+fn panic_hook(info: &PanicHookInfo<'_>) {
   use backtrace::Backtrace;
   use crossterm::style::Print;
 
@@ -204,7 +204,7 @@ fn panic_hook(info: &PanicInfo<'_>) {
 }
 
 #[cfg(not(debug_assertions))]
-fn panic_hook(info: &PanicInfo<'_>) {
+fn panic_hook(info: &PanicHookInfo<'_>) {
   use human_panic::{handle_dump, print_msg, Metadata};
 
   let meta = Metadata {
