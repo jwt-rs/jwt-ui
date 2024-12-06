@@ -21,7 +21,7 @@
                 "args": [
                     "build",
                     "--bin=jwtui",
-                    "--package=jwtui"
+                    "--package=jwt-ui"
                 ],
                 "filter": {
                     "name": "jwtui",
@@ -40,7 +40,7 @@
                     "test",
                     "--no-run",
                     "--bin=jwtui",
-                    "--package=jwtui"
+                    "--package=jwt-ui"
                 ],
                 "filter": {
                     "name": "jwtui",
