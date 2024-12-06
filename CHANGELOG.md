@@ -2,12 +2,12 @@
 
 ## Unreleased - 2023-XX-YY
 
-## [1.4.0] - 2024-12-06
+## [1.3.0] - 2024-12-06
 
 - Add ability to disable mouse capture
 - Library updates and bug fixes
 
-## [1.3.0] - 2024-05-23
+## [1.2.0] - 2024-05-23
 
 - Fix crash on refresh
 - Fix compilation error on cargo install (https://github.com/jwt-rs/jwt-ui/pull/36)
