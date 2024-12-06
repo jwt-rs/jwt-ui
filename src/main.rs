@@ -213,14 +213,13 @@ fn panic_hook(info: &PanicHookInfo<'_>) {
 fn panic_hook(info: &PanicHookInfo<'_>) {
   use human_panic::{handle_dump, print_msg, Metadata};
 
-  let meta = Metadata {
-    version: env!("CARGO_PKG_VERSION").into(),
-    name: env!("CARGO_PKG_NAME").into(),
-    authors: env!("CARGO_PKG_AUTHORS").replace(":", ", ").into(),
-    homepage: env!("CARGO_PKG_HOMEPAGE").into(),
-  };
+  let meta = Metadata::new(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
+    .authors(env!("CARGO_PKG_AUTHORS").replace(':', ", "))
+    .homepage(env!("CARGO_PKG_HOMEPAGE"));
+
   let file_path = handle_dump(&meta, info);
   disable_raw_mode().unwrap();
   execute!(io::stdout(), LeaveAlternateScreen, DisableMouseCapture).unwrap();
   print_msg(file_path, &meta).expect("human-panic: printing error message to console failed");
 }
+
