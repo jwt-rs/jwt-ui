@@ -65,7 +65,7 @@ pub fn get_secret_from_file_or_input(
   alg: &Algorithm,
   secret_string: &str,
 ) -> (JWTResult<Vec<u8>>, SecretType) {
-  return match alg {
+  match alg {
     Algorithm::HS256 | Algorithm::HS384 | Algorithm::HS512 => {
       if secret_string.starts_with('@') {
         (
@@ -103,7 +103,7 @@ pub fn get_secret_from_file_or_input(
         (Ok(secret_string.as_bytes().to_vec()), SecretType::Jwks)
       }
     }
-  };
+  }
 }
 
 pub fn strip_leading_symbol(secret_string: &str) -> String {
@@ -169,7 +169,7 @@ fn get_secret_file_type(secret_string: &str) -> SecretType {
 }
 
 fn map_external_error(ext_err: &Error) -> String {
-  return match ext_err.kind() {
+  match ext_err.kind() {
         ErrorKind::InvalidToken => {
           "The JWT provided is invalid".to_string()
         }
@@ -204,7 +204,7 @@ fn map_external_error(ext_err: &Error) -> String {
         }
         ErrorKind::InvalidAlgorithm => "The JWT provided has a different signing algorithm than the one you provided".to_string(),
         _ => format!("The JWT provided is invalid because {:?}", ext_err),
-      };
+      }
 }
 
 #[cfg(test)]

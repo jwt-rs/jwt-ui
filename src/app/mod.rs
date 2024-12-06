@@ -81,7 +81,7 @@ pub struct TextAreaInput<'a> {
   pub input_mode: InputMode,
 }
 
-impl<'a> TextAreaInput<'a> {
+impl TextAreaInput<'_> {
   fn new(input: Vec<String>) -> Self {
     Self {
       input: input.into(),
