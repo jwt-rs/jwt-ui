@@ -104,11 +104,16 @@ pub struct App {
   pub title: &'static str,
   pub should_quit: bool,
   pub main_tabs: TabsState,
+  #[allow(dead_code)]
   pub is_loading: bool,
+  #[allow(dead_code)]
   pub is_routing: bool,
+  #[allow(dead_code)]
   pub tick_rate: u64,
   pub size: Rect,
+  #[allow(dead_code)]
   pub dialog: Option<String>,
+  #[allow(dead_code)]
   pub confirm: bool,
   pub light_theme: bool,
   pub help_docs: StatefulTable<Vec<String>>,

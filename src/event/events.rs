@@ -12,6 +12,7 @@ use super::Key;
 #[derive(Debug, Clone, Copy)]
 /// Configuration for event handling.
 pub struct EventConfig {
+  #[allow(dead_code)]
   pub exit_key: Key,
   /// The tick rate at which the application will sent an tick event.
   pub tick_rate: Duration,
