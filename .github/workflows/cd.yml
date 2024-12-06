@@ -178,7 +178,7 @@ jobs:
 
   publish-homebrew-formula:
     needs: [build-release-artifacts]
-    name: Update homebrew & scoop formulas
+    name: Update homebrew formula
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
