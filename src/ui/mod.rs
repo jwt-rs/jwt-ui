@@ -26,7 +26,7 @@ pub static HIGHLIGHT: &str = "=> ";
 
 pub fn draw(f: &mut Frame<'_>, app: &mut App) {
   let block = Block::default().style(style_main_background(app.light_theme));
-  f.render_widget(block, f.size());
+  f.render_widget(block, f.area());
 
   let chunks = if !app.data.error.is_empty() {
     vertical_chunks(
@@ -36,7 +36,7 @@ pub fn draw(f: &mut Frame<'_>, app: &mut App) {
         Constraint::Length(3), // error
         Constraint::Min(0),    // main area
       ],
-      f.size(),
+      f.area(),
     )
   } else {
     vertical_chunks(
@@ -45,7 +45,7 @@ pub fn draw(f: &mut Frame<'_>, app: &mut App) {
         Constraint::Length(3), // header
         Constraint::Min(0),    // main area
       ],
-      f.size(),
+      f.area(),
     )
   };
 

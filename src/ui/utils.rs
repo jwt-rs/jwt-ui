@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, rc::Rc};
 
 use ratatui::{
-  layout::{Constraint, Direction, Layout, Rect},
+  layout::{Constraint, Direction, Layout, Position, Rect},
   style::{Color, Modifier, Style},
   text::{Line, Span},
   widgets::{Block, Borders, Paragraph, Wrap},
@@ -210,12 +210,12 @@ pub fn render_input_widget(
 
     InputMode::Editing => {
       // Make the cursor visible and ask tui-rs to put it at the specified coordinates after rendering
-      f.set_cursor(
+      f.set_cursor_position(Position {
         // Put cursor past the end of the input text
-        chunk.x + ((text_input.input.visual_cursor()).max(scroll) - scroll) as u16 + 1,
+        x: chunk.x + ((text_input.input.visual_cursor()).max(scroll) - scroll) as u16 + 1,
         // Move one line down, from the border to the input line
-        chunk.y + 1,
-      )
+        y: chunk.y + 1,
+      })
     }
   }
 }

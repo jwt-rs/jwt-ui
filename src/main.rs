@@ -128,8 +128,9 @@ fn start_ui(cli: Cli) -> Result<()> {
     // Get the size of the screen on each loop to account for resize event
     if let Ok(size) = terminal.backend().size() {
       // Reset the size if the terminal was resized
-      if app.size != size {
-        app.size = size;
+      if app.size.as_size() != size {
+        app.size.width = size.width;
+        app.size.height = size.height;
       }
     };
 

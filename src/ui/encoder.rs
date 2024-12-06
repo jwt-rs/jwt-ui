@@ -128,14 +128,14 @@ fn render_text_area_widget(
   light_theme: bool,
 ) {
   let chunks = vertical_chunks_with_margin(vec![Constraint::Min(2)], area, 1);
-  let textarea = &mut text_input.input;
+  let mut textarea = text_input.input.clone();
   textarea.set_block(
     Block::default()
       .borders(Borders::ALL)
       .style(get_input_style(&text_input.input_mode, light_theme)),
   );
 
-  f.render_widget(textarea.widget(), chunks[0]);
+  f.render_widget(&textarea, chunks[0]);
 }
 
 fn get_route(active_block: ActiveBlock) -> Route {
@@ -149,6 +149,7 @@ fn get_route(active_block: ActiveBlock) -> Route {
 mod tests {
   use ratatui::{
     backend::TestBackend,
+    layout::Position,
     prelude::Buffer,
     style::{Modifier, Style},
     Terminal,
@@ -183,7 +184,7 @@ mod tests {
 
     terminal
       .draw(|f| {
-        draw_encoder(f, &mut app, f.size());
+        draw_encoder(f, &mut app, f.area());
       })
       .unwrap();
 
@@ -215,40 +216,52 @@ mod tests {
       for col in 0..=99 {
         match (col, row) {
           (2, 2 | 10) => {
-            expected.get_mut(col, row).set_style(
-              Style::default()
-                .fg(COLOR_WHITE)
-                .add_modifier(Modifier::REVERSED),
-            );
+            expected
+              .cell_mut(Position::new(col, row))
+              .unwrap()
+              .set_style(
+                Style::default()
+                  .fg(COLOR_WHITE)
+                  .add_modifier(Modifier::REVERSED),
+              );
           }
           (1..=32, 0) => {
-            expected.get_mut(col, row).set_style(
-              Style::default()
-                .fg(COLOR_YELLOW)
-                .add_modifier(Modifier::BOLD),
-            );
+            expected
+              .cell_mut(Position::new(col, row))
+              .unwrap()
+              .set_style(
+                Style::default()
+                  .fg(COLOR_YELLOW)
+                  .add_modifier(Modifier::BOLD),
+              );
           }
           (51..=66, 0) | (51..=65, 6) | (1..=17, 8) => {
-            expected.get_mut(col, row).set_style(
-              Style::default()
-                .fg(COLOR_WHITE)
-                .add_modifier(Modifier::BOLD),
-            );
+            expected
+              .cell_mut(Position::new(col, row))
+              .unwrap()
+              .set_style(
+                Style::default()
+                  .fg(COLOR_WHITE)
+                  .add_modifier(Modifier::BOLD),
+              );
           }
           (0 | 16..=49, 0) | (0 | 49, 1..=6 | 20..=99) | (0..=49, 7) => {
             expected
-              .get_mut(col, row)
+              .cell_mut(Position::new(col, row))
+              .unwrap()
               .set_style(Style::default().fg(COLOR_YELLOW));
           }
 
           (51, 9) | (51..=98, 7..=9) | (51..=78, 10) => {
             expected
-              .get_mut(col, row)
+              .cell_mut(Position::new(col, row))
+              .unwrap()
               .set_style(Style::default().fg(COLOR_CYAN));
           }
           _ => {
             expected
-              .get_mut(col, row)
+              .cell_mut(Position::new(col, row))
+              .unwrap()
               .set_style(Style::default().fg(COLOR_WHITE));
           }
         }
