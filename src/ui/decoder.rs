@@ -148,7 +148,11 @@ fn get_route(active_block: ActiveBlock) -> Route {
 #[cfg(test)]
 mod tests {
   use ratatui::{
-    backend::TestBackend, layout::Position, prelude::Buffer, style::{Modifier, Style}, Terminal
+    backend::TestBackend,
+    layout::Position,
+    prelude::Buffer,
+    style::{Modifier, Style},
+    Terminal,
   };
 
   use super::*;
@@ -200,22 +204,29 @@ mod tests {
       for col in 0..=99 {
         match (col, row) {
           (1..=15, 0) => {
-            expected.cell_mut(Position::new(col, row)).unwrap().set_style(
-              Style::default()
-                .fg(COLOR_YELLOW)
-                .add_modifier(Modifier::BOLD),
-            );
+            expected
+              .cell_mut(Position::new(col, row))
+              .unwrap()
+              .set_style(
+                Style::default()
+                  .fg(COLOR_YELLOW)
+                  .add_modifier(Modifier::BOLD),
+              );
           }
           (51..=82, 0) | (51..=67, 8) | (1..=20, 14) => {
-            expected.cell_mut(Position::new(col, row)).unwrap().set_style(
-              Style::default()
-                .fg(COLOR_WHITE)
-                .add_modifier(Modifier::BOLD),
-            );
+            expected
+              .cell_mut(Position::new(col, row))
+              .unwrap()
+              .set_style(
+                Style::default()
+                  .fg(COLOR_WHITE)
+                  .add_modifier(Modifier::BOLD),
+              );
           }
           (0 | 16..=49, 0) | (0..=49, 13) | (0 | 49, 1..=13 | 20..=99) => {
             expected
-              .cell_mut(Position::new(col, row)).unwrap()
+              .cell_mut(Position::new(col, row))
+              .unwrap()
               .set_style(Style::default().fg(COLOR_YELLOW));
           }
           (51, 1 | 4 | 9 | 11 | 13)
@@ -224,12 +235,14 @@ mod tests {
           | (51..=70, 10 | 12)
           | (52..=71, 11 | 12) => {
             expected
-              .cell_mut(Position::new(col, row)).unwrap()
+              .cell_mut(Position::new(col, row))
+              .unwrap()
               .set_style(Style::default().fg(COLOR_CYAN));
           }
           _ => {
             expected
-              .cell_mut(Position::new(col, row)).unwrap()
+              .cell_mut(Position::new(col, row))
+              .unwrap()
               .set_style(Style::default().fg(COLOR_WHITE));
           }
         }
