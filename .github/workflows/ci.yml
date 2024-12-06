@@ -47,24 +47,28 @@ jobs:
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('Cargo.lock') }}
       - uses: dtolnay/rust-toolchain@nightly
         name: Set Rust toolchain
-        
+        with:
+          components: rustc, rust-std, cargo, llvm-tools, llvm-tools-preview
+      - run: cargo clean
       - run: cargo install grcov
-      - run: cargo test
+      - run: mkdir -p ./target/debug/coverage
+      - run: cargo test --all-features
         env:
           CARGO_INCREMENTAL: '0'
-          RUSTFLAGS: '-Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-          RUSTDOCFLAGS: '-Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+          LLVM_PROFILE_FILE: 'target/debug/coverage/dcaf-%p-%m.profraw'
+          RUSTFLAGS: '-Cinstrument-coverage -Cpanic=abort -Zpanic_abort_tests'
+          RUSTDOCFLAGS: '-C instrument-coverage -Cpanic=abort -Zpanic_abort_tests -Z unstable-options --persist-doctests target/debug/'
+      - run: zip ./target/debug/coverage/files.zip ./target/debug/coverage/dcaf-*.profraw
       - name: coverage 
         id: coverage 
         run: |
-          grcov '/home/runner/work/jwt-ui/jwt-ui' --source-dir '/home/runner/work/jwt-ui/jwt-ui' --service-job-id ${{ github.job }} --service-name 'Continuous Integration' --commit-sha ${{ github.sha }} --output-file "/tmp/lcov-${{ github.sha }}.info" --branch --ignore-not-existing --llvm --filter covered --ignore '/*' --ignore 'C:/*' --ignore '../*' -t lcov
+          grcov ./target/debug/coverage/files.zip -s . --binary-path ./target/debug/ --service-job-id ${{ github.job }} --service-name 'Continuous Integration' --commit-sha ${{ github.sha }} -o ./target/debug/coverage/ --branch --ignore-not-existing --llvm --filter covered --ignore '/*' --ignore 'C:/*' --ignore '../*' -t coveralls
         
       - name: Push grcov results to Coveralls
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          file: /tmp/lcov-${{ github.sha }}.info
-          format: lcov
+          file: ./target/debug/coverage/coveralls
 
   fmt:
     name: Rustfmt
