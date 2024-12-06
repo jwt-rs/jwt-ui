@@ -50,6 +50,9 @@ pub struct Cli {
   /// Set the tick rate (milliseconds): the lower the number the higher the FPS. Must be less than 1000.
   #[arg(short, long, value_parser, default_value_t = 250)]
   pub tick_rate: u64,
+  /// Disable mouse capture in order to copy individual text.
+  #[arg(short, long, value_parser, default_value_t = false)]
+  pub disable_mouse_capture: bool,
 }
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -108,7 +111,9 @@ fn start_ui(cli: Cli) -> Result<()> {
   let mut stdout = stdout();
   // not capturing mouse to make text select/copy possible
   execute!(stdout, EnterAlternateScreen)?;
-  enable_mouse_capture()?;
+  if !cli.disable_mouse_capture {
+    enable_mouse_capture()?;
+  }
   // terminal backend for cross platform support
   let backend = CrosstermBackend::new(stdout);
   let mut terminal = Terminal::new(backend)?;

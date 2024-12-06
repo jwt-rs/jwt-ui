@@ -185,6 +185,7 @@ Options:
 - `-n, --no-verify` Do not validate the signature of the JWT when printing to STDOUT.
 - `-j, --json` Print to STDOUT as JSON
 - `-t, --tick-rate <TICK_RATE>` Set the tick rate (milliseconds): the lower the number the higher the FPS. Must be less than 1000 [default: 250]
+- `-d, --disable-mouse-capture`  Disable mouse capture in order to copy individual text
 - `-h, --help` Print help
 - `-V, --version` Print version
 
