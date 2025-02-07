@@ -45,7 +45,7 @@ tui-textarea = { version = "0.7.0", default-features = false, features = [
 ] }
 backtrace = "0.3"
 human-panic = "2.0"
-jsonwebtoken = "9.2.0"
+jsonwebtoken = "9.3.1"
 chrono = "0.4"
 copypasta = "0.10.0"
 
