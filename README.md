@@ -238,4 +238,4 @@ MIT
 
 ## Creator
 
-- [Deepu K Sasidharan](https://deepu.tech/)
+- [Deepu K Sasidharan](https://deepu.tech/).
