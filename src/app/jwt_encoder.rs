@@ -152,7 +152,7 @@ pub fn encoding_key_from_secret(alg: &Algorithm, secret_string: &str) -> JWTResu
 
 #[cfg(test)]
 mod tests {
-  use tui_textarea::TextArea;
+  use ratatui_textarea::TextArea;
 
   use super::*;
   use crate::app::jwt_decoder::{decode_token, DecodeArgs};
