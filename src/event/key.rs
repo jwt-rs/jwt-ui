@@ -252,4 +252,15 @@ mod tests {
       Key::Ctrl('c')
     );
   }
+
+  #[test]
+  fn from_f_zero_is_valid() {
+      assert_eq!(Key::from_f(0), Key::F0);
+  }
+
+  #[test]
+  #[should_panic(expected = "unknown function key: F13")]
+  fn from_f_above_max_panics() {
+      let _ = Key::from_f(13);
+  }
 }
