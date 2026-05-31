@@ -7,8 +7,8 @@ pub(crate) mod utils;
 use std::collections::HashMap;
 
 use ratatui::layout::Rect;
+use ratatui_textarea::TextArea;
 use tui_input::Input;
-use tui_textarea::TextArea;
 
 use self::{
   jwt_decoder::{decode_jwt_token, Decoder},

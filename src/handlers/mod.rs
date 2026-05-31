@@ -1,7 +1,7 @@
 use crossterm::event::{Event, KeyEvent, MouseButton, MouseEvent, MouseEventKind};
 use ratatui::layout::Rect;
+use ratatui_textarea::TextArea;
 use tui_input::{backend::crossterm::EventHandler, Input};
-use tui_textarea::TextArea;
 
 use crate::{
   app::{
