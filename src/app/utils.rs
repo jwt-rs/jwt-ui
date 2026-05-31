@@ -152,10 +152,7 @@ fn decoding_key_from_jwks(jwks: jwk::JwkSet, header: &Header) -> JWTResult<Decod
 }
 
 fn parse_jwks(secret: &[u8]) -> Option<jwk::JwkSet> {
-  match serde_json::from_slice(secret) {
-    Ok(jwks) => Some(jwks),
-    Err(_) => None,
-  }
+  serde_json::from_slice(secret).ok()
 }
 
 fn get_secret_file_type(secret_string: &str) -> SecretType {

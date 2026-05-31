@@ -189,10 +189,7 @@ pub fn print_decoded_token(token: &TokenData<Payload>, json: bool) {
 pub(super) fn decode_token(
   arguments: &DecodeArgs,
 ) -> (JWTResult<TokenData<Payload>>, JWTResult<TokenData<Payload>>) {
-  let header = match decode_header(&arguments.jwt) {
-    Ok(header) => Some(header),
-    Err(_) => None,
-  };
+  let header = decode_header(&arguments.jwt).ok();
 
   let algorithm = header.as_ref().map(|h| h.alg).unwrap_or(Algorithm::HS256);
 
